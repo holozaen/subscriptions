@@ -25,6 +25,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Feature extends Model
 {
+    public const TYPE_FEATURE = 'feature';
+    public const TYPE_LIMIT = 'limit';
+
     protected $table = 'plan_features';
     protected $guarded = [];
     protected $casts = [
@@ -43,36 +46,36 @@ class Feature extends Model
 
     public function scopeLimited($query): Builder
     {
-        return $query->where('type', 'limit')->where('limit', '>', 0);
+        return $query->where('type', self::TYPE_LIMIT)->where('limit', '>', 0);
     }
 
     public function scopeUnlimited($query): Builder
     {
-        return $query->where('type', 'limit')->where('limit', '=', 0);
+        return $query->where('type', self::TYPE_LIMIT)->where('limit', '=', 0);
     }
 
     public function scopeFeature($query): Builder
     {
-        return $query->where('type', 'feature');
+        return $query->where('type', self::TYPE_FEATURE);
     }
 
     public function isLimitType(): bool
     {
-        return ($this->type === 'limit');
+        return ($this->type === self::TYPE_LIMIT);
     }
 
     public function isFeatureType(): bool
     {
-        return ($this->type === 'feature');
+        return ($this->type === self::TYPE_FEATURE);
     }
 
     public function isLimited(): bool
     {
-        return ($this->type === 'limit' && $this->limit > 0);
+        return ($this->type === self::TYPE_LIMIT && $this->limit > 0);
     }
 
     public function isUnlimited(): bool
     {
-        return ($this->type === 'limit' && $this->limit === 0);
+        return ($this->type === self::TYPE_LIMIT && $this->limit === 0);
     }
 }

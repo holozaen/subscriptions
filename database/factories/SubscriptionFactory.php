@@ -47,6 +47,12 @@ $factory->state(Subscription::class, 'expired', function() {
         'expires_at' => Carbon::parse('-1 days')
     ];
 });
+$factory->state(Subscription::class, 'upcoming', function() {
+    return [
+        'starts_at' => Carbon::parse('+10 days'),
+        'expires_at' => Carbon::parse('+20 days')
+    ];
+});
 $factory->state(Subscription::class, 'cancelled', function() {
     return [
         'starts_at' => Carbon::parse('-30 days'),

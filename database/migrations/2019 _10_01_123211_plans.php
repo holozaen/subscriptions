@@ -4,6 +4,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use OnlineVerkaufen\Plan\Models\Feature;
 
 class Plans extends Migration
 {
@@ -36,7 +37,7 @@ class Plans extends Migration
             $table->increments('id');
             $table->integer('plan_id');
             $table->string('code');
-            $table->enum('type', ['feature', 'limit'])->default('feature');
+            $table->enum('type', [Feature::TYPE_FEATURE, Feature::TYPE_LIMIT])->default('feature');
             $table->unsignedInteger('limit')->default(0);
             $table->unsignedInteger('position')->default(0);
 
@@ -74,7 +75,6 @@ class Plans extends Migration
             $table->increments('id');
             $table->string('code');
             $table->integer('subscription_id');
-
             $table->unsignedBigInteger('used')->default(0);
 
             $table->timestamps();

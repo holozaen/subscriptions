@@ -40,7 +40,7 @@ class MigrateTest extends TestCase
     /** @test * */
     public function can_migrate_a_yearly_plan_in_test_phase_to_a_monthly_plan_immediately(): void
     {
-        $this->user->subscribeTo($this->plan, false, false, 30);
+        $this->user->subscribeTo($this->plan, false,  30);
         $oldsubscription = $this->user->activeSubscription();
         $this->assertEquals(Plan::TYPE_YEARLY, $oldsubscription->plan->type);
         $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
@@ -59,7 +59,7 @@ class MigrateTest extends TestCase
     /** @test * */
     public function can_migrate_a_yearly_plan_to_a_monthly_plan_on_the_expiry_date(): void
     {
-        $oldSubscription = $this->user->subscribeTo($this->plan, false, false, 0);
+        $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
         $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
@@ -70,18 +70,58 @@ class MigrateTest extends TestCase
         $newSubscription->markAsPaid();
 
         $activeSubscription = $this->user->activeSubscription();
-        $this->assertTrue($activeSubscription->is($activeSubscription));
+        $this->assertTrue($activeSubscription->is($oldSubscription));
         $latestSubscription = $this->user->latestSubscription();
         $this->assertEquals(Plan::TYPE_MONTHLY, $latestSubscription->plan->type);
         $this->assertEqualsWithDelta($activeSubscription->expires_at, $latestSubscription->starts_at, 1);
     }
 
     /** @test * */
-    public function cannot_migrate_a_testing_subscription_on_the_expiry_date(): void
+    public function can_migrate_a_yearly_plan_to_a_non_recurring_plan_with_set_duration(): void
     {
-        $oldSubscription = $this->user->subscribeTo($this->plan, false, false, 30);
+        $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
+        $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
         $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        Event::fake();
+
+        $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
+        $newSubscription = $this->user->migrateSubscriptionTo($durationPlan, false, true, 30);
+        $newSubscription->markAsPaid();
+
+        $activeSubscription = $this->user->activeSubscription();
+        $this->assertTrue($activeSubscription->is($newSubscription));
+        Event::assertDispatched(SubscriptionMigrated::class);
+    }
+
+    /** @test * */
+    public function can_not_migrate_a_yearly_plan_to_a_non_recurring_plan_with_zero_duration(): void
+    {
+        $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
+        $oldSubscription->markAsPaid();
+        $activeSubscription = $this->user->activeSubscription();
+        $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
+        Event::fake();
+
+        try{
+            $newSubscription = $this->user->migrateSubscriptionTo($durationPlan, false, true, 0);
+        } catch (SubscriptionException $e) {
+            $this->assertTrue($activeSubscription->is($oldSubscription));
+            Event::assertNotDispatched(SubscriptionMigrated::class);
+            return;
+        }
+
+        $this->fail('Expected SubscriptionException');
+    }
+
+    /** @test * */
+    public function cannot_migrate_a_testing_subscription_on_the_expiry_date(): void
+    {
+        $oldSubscription = $this->user->subscribeTo($this->plan, false, 30);
+        $activeSubscription = $this->user->activeSubscription();
+        $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        Event::fake();
 
         $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
         try {
@@ -91,10 +131,28 @@ class MigrateTest extends TestCase
         } catch (SubscriptionException $e) {
             $activeSubscription = $this->user->activeSubscription();
             $this->assertTrue($activeSubscription->is($activeSubscription));
+            Event::assertNotDispatched(SubscriptionMigrated::class);
             return;
         }
 
         $this->fail();
     }
 
+    /** @test * */
+    public function can_only_migrate_active_subscriptions(): void
+    {
+        $oldSubscription = factory(Subscription::class)->states('expired');
+        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        Event::fake();
+
+        try {
+            $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
+        } catch (SubscriptionException $e) {
+            $this->assertFalse($this->user->hasActiveSubscription());
+            Event::assertNotDispatched(SubscriptionMigrated::class);
+            return;
+        }
+
+        $this->fail();
+    }
 }

@@ -11,9 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
+use OnlineVerkaufen\Plan\Events\DispatchesSubscriptionEvents;
 use OnlineVerkaufen\Plan\Events\FeatureConsumed;
 use OnlineVerkaufen\Plan\Events\FeatureUnconsumed;
-use OnlineVerkaufen\Plan\Events\SubscriptionCancelled;
 use OnlineVerkaufen\Plan\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Plan\Exception\FeatureException;
 use OnlineVerkaufen\Plan\Exception\FeatureNotFoundException;
@@ -49,6 +49,8 @@ use OnlineVerkaufen\Plan\Models\Feature\Usage;
 
 class Subscription extends Model
 {
+    use DispatchesSubscriptionEvents;
+
     protected $table = 'plan_subscriptions';
     protected $guarded = [];
     protected $dates = [
@@ -63,6 +65,8 @@ class Subscription extends Model
     protected $casts = [
         'is_recurring' => 'boolean',
     ];
+
+    protected $appends = ['is_active'];
 
     public function model(): MorphTo
     {
@@ -130,6 +134,11 @@ class Subscription extends Model
         return $query->whereNull('paid_at');
     }
 
+    public function scopeUpcoming($query): Builder
+    {
+        return $query->where('starts_at', '>', Carbon::now());
+    }
+
     public function hasStarted(): bool
     {
         return Carbon::now()->greaterThanOrEqualTo(Carbon::parse($this->starts_at)->startOfDay());
@@ -178,6 +187,11 @@ class Subscription extends Model
             !$this->isRefunded());
     }
 
+    public function getIsActiveAttribute()
+    {
+       return $this->isActive();
+    }
+
     /**
      * @throws SubscriptionException
      */
@@ -197,6 +211,8 @@ class Subscription extends Model
         $this->update([
             'paid_at' => Carbon::now()
         ]);
+
+        $this->dispatchSubscriptionEvent(new SubscriptionPaymentSucceeded($this));
 
         return $this;
     }

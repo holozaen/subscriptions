@@ -24,6 +24,8 @@ class SubscriptionTest extends TestCase
       $this->assertTrue($subscription->model->is($user));
     }
 
+
+
     /** @test */
     public function can_get_all_active_subscriptions(): void
     {
@@ -64,6 +66,22 @@ class SubscriptionTest extends TestCase
         $this->assertCount(2, Subscription::testing()->get());
         $this->assertTrue($testingSubscriptionA->is(Subscription::testing()->get()[0]));
         $this->assertTrue($testingSubscriptionB->is(Subscription::testing()->get()[1]));
+    }
+
+    /** @test */
+    public function can_get_upcoming_subscriptions_incl_testing(): void
+    {
+        $upcomingSubscriptionA = factory(Subscription::class)->states(['upcoming'])->create();
+        $upcomingSubscriptionB = factory(Subscription::class)->states(['upcoming'])->create();
+        $activeSubscriptionC = factory(Subscription::class)->states(['unpaid'])->create();
+        $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create();
+        $testingSubscriptionE = factory(Subscription::class)->states(['testing'])->create();
+        $testingSubscriptionF = factory(Subscription::class)->states(['testing'])->create();
+        $this->assertCount(4, Subscription::upcoming()->get());
+        $this->assertTrue($upcomingSubscriptionA->is(Subscription::upcoming()->get()[0]));
+        $this->assertTrue($upcomingSubscriptionB->is(Subscription::upcoming()->get()[1]));
+        $this->assertTrue($testingSubscriptionE->is(Subscription::upcoming()->get()[2]));
+        $this->assertTrue($testingSubscriptionF->is(Subscription::upcoming()->get()[3]));
     }
 
     /** @test */
@@ -162,5 +180,13 @@ class SubscriptionTest extends TestCase
 
         $this->assertTrue($subscription->isCancelled());
         $this->assertFalse($subscription->isPendingCancellation());
+    }
+
+    /** @test */
+    public function it_knows_whether_it_is_active(): void
+    {
+        $subscription = factory(Subscription::class)->states('active')->create();
+        $this->assertTrue($subscription->is_active);
+
     }
 }

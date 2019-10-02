@@ -36,51 +36,26 @@ trait HasPlans
     /**
      * @return Subscription | null
      */
+    public function upcomingSubscription(): ?Subscription
+    {
+        return $this->subscriptions()->upcoming()->first();
+    }
+
+    /**
+     * @return Subscription | null
+     */
     public function latestSubscription(): ?Subscription
     {
         return $this->subscriptions()->latest('created_at')->first();
     }
 
-    /**
-     * @return Subscription | null
-     */
-    public function regularSubscription(): ?Subscription
-    {
-        return $this->subscriptions()->regular()->first();
-    }
-
-    /**
-     * @return Subscription | null
-     */
-    public function testingSubscription(): ?Subscription
-    {
-        return $this->subscriptions()->testing()->first();
-    }
-
-    /**
-     * @throws MorphMany | Subscription | null
-     */
     public function activeOrLastSubscription()
     {
-        if (!$this->hasSubscriptions()) {
-            return null;
-        }
-
         if ($this->hasActiveSubscription()) {
             return $this->activeSubscription();
         }
 
         return $this->subscriptions()->latest('starts_at')->first();
-    }
-
-    /**
-     * Check if the model has subscriptions.
-     *
-     * @return bool Whether the bound model has subscriptions or not.
-     */
-    public function hasSubscriptions(): bool
-    {
-        return ($this->subscriptions()->count() > 0);
     }
 
     /**
@@ -95,9 +70,13 @@ trait HasPlans
 
     public function hasUnpaidSubscriptions(): bool
     {
-        return (bool)$this->subscriptions()->paid();
+        return (bool)$this->subscriptions()->unpaid()->first();
     }
 
+    public function hasUpcomingSubscription(): bool
+    {
+        return $this->upcomingSubscription() ? true : false;
+    }
 
     /**
      * @param Plan $plan
@@ -107,24 +86,18 @@ trait HasPlans
      * @param int $duration
      * @param mixed | null $startsAt
      * @return Subscription
-     * @throws PlanException
      * @throws SubscriptionException
      */
     public function subscribeTo(Plan $plan,
                                 bool $isRecurring = true,
-                                bool $isRenewal = false,
                                 int $testingDays = 0,
                                 int $duration = 30,
                                 $startsAt = null): Subscription
     {
         $subscriptionModel = config('plan.models.subscription');
 
-        if ($duration < 1) {
-            throw new PlanException('A plan has to have a duration that is greater than');
-        }
-
-        if ($this->hasActiveSubscription() && $this->activeSubscription()->expires_at < $startsAt) {
-            throw new SubscriptionException('The user is already subscribed');
+        if ($plan->type === Plan::TYPE_DURATION && $duration < 1) {
+            throw new SubscriptionException('A subscription has to have a duration that is greater than');
         }
 
         try {
@@ -138,6 +111,17 @@ trait HasPlans
             throw new SubscriptionException('Expiration date computing error');
         }
 
+        if ($this->hasActiveSubscription() && $this->activeSubscription()->expires_at->gt(Carbon::parse($startsAt))) {
+            throw new SubscriptionException('The user has a conflicting active subscription');
+        }
+
+        if ($this->hasUpcomingSubscription()) {
+            if ($this->upcomingSubscription()->expires_at->gt($dateProcessor->getStartDate()) ||
+            $dateProcessor->getStartDate()->gt($this->upcomingSubscription()->starts_at)) {
+                throw new SubscriptionException('The user has a conflicting future subscription');
+            }
+        }
+
         try {
             /** @var Subscription $subscription */
             $subscription = $this->subscriptions()->save(new $subscriptionModel([
@@ -149,7 +133,6 @@ trait HasPlans
                 'price' => $plan->price,
                 'currency' => $plan->currency,
                 'is_recurring' => $isRecurring,
-                'renewed_at' => $isRenewal ? Carbon::now() : null
             ]));
             if (false === $subscription) {
                 throw new SubscriptionException('could not attach subscription');
@@ -170,7 +153,6 @@ trait HasPlans
      * @param int $duration
      * @return Subscription
      * @throws SubscriptionException
-     * @throws PlanException
      */
     public function migrateSubscriptionTo(Plan $plan,
                               bool $isRecurring = true,
@@ -183,7 +165,7 @@ trait HasPlans
         }
 
         if (false === $immediate && $previousSubscription->isTesting()) {
-            throw new SubscriptionException('can only immediately migrate a subscription in the test phase');
+            throw new SubscriptionException('can only migrate a subscription in the test phase immediately');
         }
 
         try {
@@ -195,16 +177,14 @@ trait HasPlans
             $newSubscription = $this->subscribeTo($plan,
                 $isRecurring,
                 false,
-                0,
                 $duration,
                 $immediate ? Carbon::now() : $previousSubscription->expires_at);
 
             $this->resumeSubscriptionEventDispatcher();
-
             $this->dispatchSubscriptionEvent(new SubscriptionMigrated($previousSubscription->fresh(), $newSubscription));
             return $newSubscription;
         } catch (Exception $e) {
-            throw new PlanException('could not migrate the plan');
+            throw new SubscriptionException('could not migrate the subscription to a new plan');
         }
     }
 
@@ -280,7 +260,6 @@ trait HasPlans
             $renewedSubscription = $this->subscribeTo(
                 $latestSubscription->plan,
                 $latestSubscription->is_recurring,
-                true,
                 0,
                 Carbon::parse($latestSubscription->starts_at)->diffInDays($latestSubscription->expires_at));
 
@@ -350,7 +329,6 @@ trait HasPlans
             /** @var Subscription $renewedSubscription */
             $renewedSubscription = $this->subscribeTo(
                 $activeSubscription->plan,
-                true,
                 true,
                 0,
                 Carbon::parse($activeSubscription->starts_at)

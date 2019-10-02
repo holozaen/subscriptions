@@ -32,17 +32,12 @@ class Usage extends Model
         return $this->belongsTo(config('plan.models.subscription'), 'subscription_id');
     }
 
-    public function feature(): BelongsTo
-    {
-        return $this->belongsTo(config('plan.models.feature'), 'feature_id');
-    }
-
     public function scopeCode($query, string $code): Builder
     {
         return $query->where('code', $code);
     }
 
-    public function increaseBy(int $amount)
+    public function increaseBy(int $amount): void
     {
         $this->update(
             [
@@ -50,7 +45,7 @@ class Usage extends Model
             ]);
     }
 
-    public function decreaseBy(int $amount)
+    public function decreaseBy(int $amount): void
     {
         $this->update(
             [
