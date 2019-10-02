@@ -1,0 +1,47 @@
+{
+  "name": "holozaen/plan",
+  "description": "a package for laravel apps providing basic management over plans, features, subscriptions",
+  "homepage": "https://github.com/holozaen/plans",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Peter Baettig",
+      "email": "info@online-verkaufen.ch",
+      "homepage": "https://twitter.com/PeterBaettig",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "doctrine/dbal": "^2.0.0",
+    "laravel/framework": "5.8.*"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-master",
+    "phpunit/phpunit": "^7.0",
+    "orchestra/testbench": "^3.8.0",
+    "orchestra/database": "^3.8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OnlineVerkaufen\\Plan\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OnlineVerkaufen\\Plan\\Test\\": "tests"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "ovc\\Plan\\PlansServiceProvider"
+      ]
+    }
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

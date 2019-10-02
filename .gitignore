@@ -1,0 +1,5 @@
+vendor/
+composer.lock
+/.idea
+/tests/database.sqlite-journal
+/tests/database.sqlite
