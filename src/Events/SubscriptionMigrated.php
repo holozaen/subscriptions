@@ -2,19 +2,19 @@
 
 namespace OnlineVerkaufen\Plan\Events;
 
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 class SubscriptionMigrated
 {
-    use SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $model;
     public $subscription;
     public $previousSubscription;
 
-    public function __construct($model, $previousSubscription, $subscription)
+    public function __construct($previousSubscription, $subscription)
     {
-        $this->model = $model;
         $this->previousSubscription = $previousSubscription;
         $this->subscription = $subscription;
     }

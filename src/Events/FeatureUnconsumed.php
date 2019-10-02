@@ -2,14 +2,16 @@
 
 namespace OnlineVerkaufen\Plan\Events;
 
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use OnlineVerkaufen\Plan\Models\Feature;
 use OnlineVerkaufen\Plan\Models\Subscription;
 
 class FeatureUnconsumed
 {
-    use SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $subscription;
     public $feature;

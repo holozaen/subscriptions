@@ -2,18 +2,19 @@
 
 namespace OnlineVerkaufen\Plan\Events;
 
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 class NewSubscription
 {
-    use SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $model;
     public $subscription;
 
-    public function __construct($model, $subscription)
+    public function __construct($subscription)
     {
-        $this->model = $model;
         $this->subscription = $subscription;
     }
 }

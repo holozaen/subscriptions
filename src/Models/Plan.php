@@ -7,9 +7,9 @@ namespace OnlineVerkaufen\Plan\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use OnlineVerkaufen\Plan\Models\PlanTypes\Duration;
-use OnlineVerkaufen\Plan\Models\PlanTypes\Monthly;
-use OnlineVerkaufen\Plan\Models\PlanTypes\Yearly;
+use OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors\Duration;
+use OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors\Monthly;
+use OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors\Yearly;
 
 /**
  * @property int id

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedVariableInspection */
 
 use Carbon\Carbon;
 use OnlineVerkaufen\Plan\Models\Plan;
@@ -37,6 +37,7 @@ $factory->state(Subscription::class, 'active', function() {
 });
 $factory->state(Subscription::class, 'testing', function() {
     return [
+        'test_ends_at' => Carbon::parse('+10 days'),
         'starts_at' => Carbon::parse('+10 days')
     ];
 });

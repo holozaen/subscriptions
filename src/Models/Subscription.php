@@ -5,7 +5,6 @@ namespace OnlineVerkaufen\Plan\Models;
 
 
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,10 +13,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
 use OnlineVerkaufen\Plan\Events\FeatureConsumed;
 use OnlineVerkaufen\Plan\Events\FeatureUnconsumed;
+use OnlineVerkaufen\Plan\Events\SubscriptionCancelled;
 use OnlineVerkaufen\Plan\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Plan\Exception\FeatureException;
 use OnlineVerkaufen\Plan\Exception\FeatureNotFoundException;
-use OnlineVerkaufen\Plan\Exception\PlanNotFoundException;
 use OnlineVerkaufen\Plan\Exception\SubscriptionException;
 use OnlineVerkaufen\Plan\Models\Feature\Usage;
 
@@ -26,12 +25,13 @@ use OnlineVerkaufen\Plan\Models\Feature\Usage;
  * @property int plan_id
  * @property int model_id
  * @property string model_type
- * @property string | null payment_method
  * @property int price
  * @property string currency
  * @property bool is_recurring
  *
+ * @property Model model
  * @property mixed paid_at
+ * @property mixed test_ends_at
  * @property mixed starts_at
  * @property mixed expires_at
  * @property mixed cancelled_at
@@ -57,7 +57,8 @@ class Subscription extends Model
         'expires_at',
         'renewed_at',
         'cancelled_at',
-        'refunded_at'
+        'refunded_at',
+        'test_ends_at'
     ];
     protected $casts = [
         'is_recurring' => 'boolean',
@@ -73,14 +74,9 @@ class Subscription extends Model
         return $this->belongsTo(config('plan.models.plan'), 'plan_id');
     }
 
-    /** @throws PlanNotFoundException */
     public function features(): HasMany
     {
-        try {
-            return $this->plan->features();
-        } catch (Exception $e) {
-            throw new PlanNotFoundException('Plan subscription needs to have a plan attached');
-        }
+        return $this->plan->features();
     }
 
     public function usages(): HasMany
@@ -88,21 +84,40 @@ class Subscription extends Model
         return $this->hasMany(config('plan.models.usage'), 'subscription_id');
     }
 
-    public function scopeActive($query): Builder
+    public function scopeActive($query): Builder //regular or testing
     {
-        return $query->where(function($query) {
-            return $query->where(Carbon::now()->endOfDay(),'<', DB::raw('starts_at'));
-        })
-            ->orWhere(function($query) {
-                return $query->where(Carbon::now()->endOfDay(), '>=', DB::raw('starts_at')) //started
-                    ->whereNotNull('paid_at')
-                    ->where(Carbon::now()->endOfDay(),'<=',  DB::raw('expires_at')) //not expired
-                    ->where(static function($query) {
+        return $query->where(
+            static function($query) {
+                return $query->where(Carbon::now(), '>=', DB::raw('starts_at')) // is started
+                ->whereNotNull('paid_at') // is paid
+                ->where(Carbon::now(),'<=',  DB::raw('expires_at')) // has not expired
+                ->where(static function($query) {  // is not cancelled
+                    return $query->whereNull('cancelled_at')
+                        ->orWhere(DB::raw('cancelled_at'), '>', Carbon::now()); // not cancelled
+                })
+                    ->whereNull('refunded_at'); // is not refunded
+            }
+        )
+            ->orWhere(static function ($query) {
+                return $query->whereNotNull('test_ends_at')->where(Carbon::now(),'<', DB::raw('test_ends_at'));
+            });
+    }
+
+    public function scopeRegular($query): Builder
+    {
+        return $query->where(Carbon::now(), '>=', DB::raw('starts_at')) // is started
+                    ->whereNotNull('paid_at') // is paid
+                    ->where(Carbon::now(),'<=',  DB::raw('expires_at')) // has not expired
+                    ->where(static function($query) {  // is not cancelled
                         return $query->whereNull('cancelled_at')
-                            ->orWhere(DB::raw('cancelled_at'), '>', Carbon::now()->endOfDay()); // not cancelled
+                            ->orWhere(DB::raw('cancelled_at'), '>', Carbon::now()); // not cancelled
                     })
-                    ->whereNull('refunded_at'); // not refunded
-        });
+                    ->whereNull('refunded_at'); // is not refunded
+    }
+
+    public function scopeTesting($query): Builder
+    {
+        return $query->whereNotNull('test_ends_at')->where(Carbon::now(),'<', DB::raw('test_ends_at'));
     }
 
     public function scopePaid($query): Builder
@@ -122,7 +137,7 @@ class Subscription extends Model
 
     public function isTesting(): bool
     {
-        return Carbon::now()->endOfDay()->lessThan(Carbon::parse($this->starts_at));
+        return (null !== $this->test_ends_at && Carbon::now()->lessThan(Carbon::parse($this->test_ends_at)));
     }
 
     public function isPaid(): bool
@@ -137,7 +152,7 @@ class Subscription extends Model
 
     public function isPendingCancellation(): bool
     {
-        return ($this->cancelled_at !== null && $this->cancelled_at >= Carbon::now()->startOfDay());
+        return ($this->cancelled_at !== null && $this->cancelled_at >= Carbon::now());
     }
 
     public function isRefunded(): bool
@@ -155,6 +170,7 @@ class Subscription extends Model
         if ($this->isTesting()) {
             return true;
         }
+
         return ($this->hasStarted() &&
             $this->isPaid() &&
             !$this->hasExpired() &&
@@ -170,6 +186,7 @@ class Subscription extends Model
         if (!$this->hasStarted()) {
             throw new SubscriptionException('Subscription not yet started');
         }
+
         return $this->hasExpired() ?
             0:
             (int) Carbon::now()->diffInDays(Carbon::parse($this->expires_at));
@@ -177,17 +194,26 @@ class Subscription extends Model
 
     public function markAsPaid(): self
     {
-
         $this->update([
             'paid_at' => Carbon::now()
         ]);
 
-        event(new SubscriptionPaymentSucceeded( $this));
         return $this;
     }
 
     public function cancel($immediate = false): self
     {
+        if ($this->isCancelled()) {
+            throw new SubscriptionException('subscription is already cancelled or pending cancellation');
+        }
+
+        if ($this->isTesting()) {
+            $this->update([
+                'starts_at' => Carbon::now(),
+                'test_ends_at' => Carbon::now()
+            ]);
+        }
+
         $this->update([
             'cancelled_at' => $immediate ? Carbon::now() : $this->expires_at,
             'is_recurring' => false
@@ -196,13 +222,8 @@ class Subscription extends Model
         return $this;
     }
 
-    public function consumeFeature(string $featureCode, float $amount): void
+    public function consumeFeature(string $featureCode, int $amount): void
     {
-        /** @var Feature $feature */
-        if (!$feature = $this->features()->code($featureCode)->first()) {
-            throw new FeatureNotFoundException(sprintf('No feature found with code %s', $featureCode));
-        }
-
         /** @var Usage $usage */
         $usage = $this->usageModelOf($featureCode);
 
@@ -216,45 +237,33 @@ class Subscription extends Model
         }
 
         $usage->increaseBy($amount);
-        event(new FeatureConsumed($this, $feature, $amount, $this->getRemainingOf($featureCode)));
+        event(new FeatureConsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode)));
     }
 
-    public function unconsumeFeature(string $featureCode, float $amount): void
+    public function unconsumeFeature(string $featureCode, int $amount): void
     {
-        /** @var Feature $feature */
-        if (!$feature = $this->features()->code($featureCode)->first()) {
-            throw new FeatureException(sprintf('No feature found with code %s', $featureCode));
-        }
-
-        /** @var Usage $usage */
         $usage = $this->usageModelOf($featureCode);
 
         $usage->decreaseBy($amount);
 
-        event(new FeatureUnconsumed($this, $feature, $amount, $this->getRemainingOf($featureCode)));
+        event(new FeatureUnconsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode)));
     }
 
+
     /**
-     * Get the amount used for a limit.
-     *
-     * @param string $featureCode The feature code. This feature has to be 'limit' type.
-     * @return float
-     * @throws FeatureException
-     * @throws PlanNotFoundException
+     * @param string $featureCode
+     * @return int
+     * @throws FeatureNotFoundException
      */
-    public function getUsageOf(string $featureCode): float
+    public function getUsageOf(string $featureCode): int
     {
         /** @var Usage $usage */
         $usage = $this->usages()->code($featureCode)->first();
 
         /** @var Feature $feature */
-        $feature = $this->features()->code($featureCode)->first();
+        $feature = $this->getFeatureByCode($featureCode);
 
-        if ($feature->isFeatureType()) {
-            throw new FeatureException('This feature is not limited and thus can not be consumed');
-        }
-
-        return (float) $usage->used;
+        return $usage->used;
     }
 
     /**
@@ -263,18 +272,14 @@ class Subscription extends Model
      * @param string $featureCode The feature code. This feature has to be 'limit' type.
      * @return int The amount remaining.
      * @throws FeatureException
-     * @throws PlanNotFoundException
+     * @throws FeatureNotFoundException
      */
     public function getRemainingOf(string $featureCode): int
     {
         $usage = $this->usageModelOf($featureCode);
 
         /** @var Feature $feature */
-        $feature = $this->features()->code($featureCode)->first();
-
-        if ($feature->isFeatureType()) {
-            throw new FeatureException('This feature is not limited and thus can not be consumed');
-        }
+        $feature = $this->getFeatureByCode($featureCode);
 
         if ($feature->isUnlimited()) {
             return 9999;
@@ -309,7 +314,7 @@ class Subscription extends Model
      * @param string $featureCode
      * @return Usage
      * @throws FeatureException
-     * @throws PlanNotFoundException
+     * @throws FeatureNotFoundException
      */
     private function usageModelOf(string $featureCode): Usage
     {
@@ -317,7 +322,7 @@ class Subscription extends Model
 
         if (!$usage) {
             /** @var Feature $feature */
-            $feature = $this->features()->code($featureCode)->first();
+            $feature = $this->getFeatureByCode($featureCode);
 
             if ($feature->isFeatureType()) {
                 throw new FeatureException('This feature is not limited and thus can not be consumed');
@@ -330,31 +335,27 @@ class Subscription extends Model
 
     /**
      * @param string $featureCode
-     * @return mixed
-     * @throws PlanNotFoundException
+     * @return Feature
+     * @throws FeatureNotFoundException
      */
-    private function getLimitedFeatureByCode(string $featureCode)
+    private function getFeatureByCode(string $featureCode): Feature
     {
-        return $this->features()->limited()->code($featureCode)->first();
-    }
-    /**
-     * @param string $featureCode
-     * @return mixed
-     * @throws PlanNotFoundException
-     */
-    private function getUnimitedFeatureByCode(string $featureCode)
-    {
-        return $this->features()->unlimited()->code($featureCode)->first();
+        /** @var Feature $feature */
+        $feature = $this->features()->code($featureCode)->first();
+        if (!is_a ($feature, Feature::class)) {
+            throw new FeatureNotFoundException(sprintf('No feature found with code %s', $featureCode));
+        }
+        return $feature;
     }
 
     /**
      * @param string $featureCode
-     * @param float $amount
+     * @param int $amount
      * @return bool
      * @throws FeatureException
-     * @throws PlanNotFoundException
+     * @throws FeatureNotFoundException
      */
-    public function hasAvailable(string $featureCode, float $amount): bool
+    public function hasAvailable(string $featureCode, int $amount): bool
     {
         return $this->getUsageOf($featureCode) + $amount < $this->getRemainingOf($featureCode);
     }

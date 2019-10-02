@@ -77,6 +77,7 @@ class FeatureTest extends TestCase
         $this->assertTrue($unlimitedFeature->isLimitType());
         $this->assertTrue($unlimitedFeature->isLimited());
         $this->assertFalse($unlimitedFeature->isUnlimited());
+
     }
 
     /** @test */
@@ -189,6 +190,20 @@ class FeatureTest extends TestCase
         try {
             $this->subscription->unconsumeFeature('feature.feature', 1);
         } catch (FeatureException $e) {
+            Event::assertNotDispatched(FeatureUnconsumed::class);
+            return;
+        }
+        $this->fail('Expected FeatureNotFoundException');
+    }
+
+    /** @test */
+    public function can_not_unconsume_an_inexisting_feature(): void
+    {
+        Event::fake();
+        try {
+            $this->subscription->unconsumeFeature('other_feature', 1);
+        } catch (FeatureNotFoundException $e) {
+            $this->assertEquals($this->subscription->usages()->count(), 0);
             Event::assertNotDispatched(FeatureUnconsumed::class);
             return;
         }
