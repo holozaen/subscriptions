@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider;
 
 class PlanServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         $this->publishes([
             __DIR__ . '/../config/plan.php' => config_path('plan.php'),

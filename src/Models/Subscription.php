@@ -31,11 +31,13 @@ use OnlineVerkaufen\Plan\Models\Feature\Usage;
  *
  * @property Model model
  * @property mixed paid_at
+ * @property mixed payment_tolerance_ends_at
  * @property mixed test_ends_at
  * @property mixed starts_at
  * @property mixed expires_at
  * @property mixed cancelled_at
  * @property mixed refunded_at
+ * @property mixed renewed_at
  * @property mixed created_at
  *
  * @property Plan plan
@@ -44,6 +46,7 @@ use OnlineVerkaufen\Plan\Models\Feature\Usage;
  * @method static Builder active
  * @method static Builder paid
  * @method static Builder unpaid
+ * @method static Builder withinPaymentTolerance
  */
 
 
@@ -55,6 +58,7 @@ class Subscription extends Model
     protected $guarded = [];
     protected $dates = [
         'paid_at',
+        'payment_tolerance_ends_at',
         'starts_at',
         'expires_at',
         'renewed_at',
@@ -93,7 +97,8 @@ class Subscription extends Model
         return $query->where(
             static function($query) {
                 return $query->where(Carbon::now(), '>=', DB::raw('starts_at')) // is started
-                ->whereNotNull('paid_at') // is paid
+                ->where(function($query) {
+                    return $query->whereNotNull('paid_at')->orWhere(DB::raw('payment_tolerance_ends_at'), '>', Carbon::now());}) // is paid or whithin payment tolerance
                 ->where(Carbon::now(),'<=',  DB::raw('expires_at')) // has not expired
                 ->where(static function($query) {  // is not cancelled
                     return $query->whereNull('cancelled_at')
@@ -110,7 +115,8 @@ class Subscription extends Model
     public function scopeRegular($query): Builder
     {
         return $query->where(Carbon::now(), '>=', DB::raw('starts_at')) // is started
-                    ->whereNotNull('paid_at') // is paid
+                    ->where(function($query) {
+                        return $query->whereNotNull('paid_at')->orWhere(DB::raw('payment_tolerance_ends_at'), '>', Carbon::now());}) // is paid or whithin payment tolerance
                     ->where(Carbon::now(),'<=',  DB::raw('expires_at')) // has not expired
                     ->where(static function($query) {  // is not cancelled
                         return $query->whereNull('cancelled_at')
@@ -137,6 +143,11 @@ class Subscription extends Model
     public function scopeUpcoming($query): Builder
     {
         return $query->where('starts_at', '>', Carbon::now());
+    }
+
+    public function scopeWithinPaymentTolerance($query): Builder
+    {
+        return $query->where('payment_tolerance_ends_at', '>', Carbon::now());
     }
 
     public function hasStarted(): bool
@@ -167,6 +178,11 @@ class Subscription extends Model
     public function isRefunded(): bool
     {
         return ($this->refunded_at !== null);
+    }
+
+    public function isRenewed(): bool
+    {
+        return ($this->renewed_at !== null);
     }
 
     public function hasExpired(): bool
@@ -318,10 +334,6 @@ class Subscription extends Model
             'code' => $featureCode,
             'used' => 0,
         ]));
-
-        if ($usage === false) {
-            throw new FeatureException(sprintf('usage for feature with code %s has not been created', $featureCode));
-        }
 
         return $usage;
     }

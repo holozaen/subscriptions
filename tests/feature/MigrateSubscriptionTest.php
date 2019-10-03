@@ -5,7 +5,7 @@ namespace OnlineVerkaufen\Plan\Test\feature;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
 use OnlineVerkaufen\Plan\Events\NewSubscription;
-use OnlineVerkaufen\Plan\Events\RenewedSubscription;
+use OnlineVerkaufen\Plan\Events\SubscriptionRenewed;
 use OnlineVerkaufen\Plan\Events\SubscriptionMigrated;
 use OnlineVerkaufen\Plan\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Plan\Exception\SubscriptionException;

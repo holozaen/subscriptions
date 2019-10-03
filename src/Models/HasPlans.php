@@ -8,7 +8,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use OnlineVerkaufen\Plan\Events\DispatchesSubscriptionEvents;
 use OnlineVerkaufen\Plan\Events\NewSubscription;
-use OnlineVerkaufen\Plan\Events\RenewedSubscription;
+use OnlineVerkaufen\Plan\Events\SubscriptionRenewed;
 use OnlineVerkaufen\Plan\Events\SubscriptionCancelled;
 use OnlineVerkaufen\Plan\Events\SubscriptionExtended;
 use OnlineVerkaufen\Plan\Events\SubscriptionMigrated;
@@ -95,16 +95,12 @@ trait HasPlans
     {
         $subscriptionModel = config('plan.models.subscription');
 
-        try {
-            /** @var AbstractPlanTypeDateProcessor $dateProcessor */
-            $dateProcessor = app()->makeWith($plan->type, [
-                'testingDays' => $testingDays,
-                'startAt' => $startsAt,
-                'duration' => $duration
-            ]);
-        } catch (Exception $e) {
-            throw new SubscriptionException('Expiration date computing error');
-        }
+        /** @var AbstractPlanTypeDateProcessor $dateProcessor */
+        $dateProcessor = app()->makeWith($plan->type, [
+            'testingDays' => $testingDays,
+            'startAt' => $startsAt,
+            'duration' => $duration
+        ]);
 
         if ($this->hasActiveSubscription() && $this->activeSubscription()->expires_at->gt(Carbon::parse($startsAt))) {
             throw new SubscriptionException('The user has a conflicting active subscription');
@@ -186,50 +182,40 @@ trait HasPlans
     /**
      * @param int $days
      * @return Subscription
-     * @throws PlanException
+     * @throws SubscriptionException
      */
     public function extendSubscription(int $days): Subscription
     {
         /** @var Subscription $activeSubscription */
         if (!$activeSubscription  = $this->activeSubscription()) {
-            throw new PlanException('no active subscription found');
+            throw new SubscriptionException('no active subscription found');
         }
+        $activeSubscription->update([
+            'expires_at' => Carbon::parse($activeSubscription->expires_at)->addDays($days)->endOfDay(),
+        ]);
 
-        try {
-            $activeSubscription->update([
-                'expires_at' => Carbon::parse($activeSubscription->expires_at)->addDays($days)->endOfDay(),
-            ]);
+        $this->dispatchSubscriptionEvent(new SubscriptionExtended($activeSubscription));
 
-            $this->dispatchSubscriptionEvent(new SubscriptionExtended($activeSubscription));
-
-            return $activeSubscription;
-        } catch (Exception $e) {
-            throw new PlanException('could not extend active subscription');
-        }
+        return $activeSubscription;
     }
 
     /**
      * @param $date
      * @return Subscription
-     * @throws PlanException
+     * @throws SubscriptionException
      */
     public function extendSubscriptionTo($date): Subscription
     {
         /** @var Subscription $activeSubscription */
         if (!$activeSubscription  = $this->activeSubscription()) {
-            throw new PlanException('no active subscription found');
+            throw new SubscriptionException('no active subscription found');
         }
 
-        try {
-            $activeSubscription->update([
-                'expires_at' => Carbon::parse($date)->endOfDay(),
-            ]);
-        } catch (Exception $e) {
-            throw new PlanException('could not extend active subscription');
-        }
+        $activeSubscription->update([
+            'expires_at' => Carbon::parse($date)->endOfDay(),
+        ]);
 
         $this->dispatchSubscriptionEvent(new SubscriptionExtended($activeSubscription));
-
         return $activeSubscription;
     }
 
@@ -237,39 +223,38 @@ trait HasPlans
     /**
      * @param bool $markAsPaid
      * @return Subscription
-     * @throws PlanException
+     * @throws SubscriptionException
      */
-    public function renewLatestSubscription(bool $markAsPaid = false): Subscription
+    public function renewExpiredSubscription(bool $markAsPaid = false): Subscription
     {
         if ($this->activeSubscription()) {
-            throw new PlanException('active subscription found');
+            throw new SubscriptionException('active subscription found');
         }
 
         /** @var Subscription $latestSubscription */
         if (!$latestSubscription = $this->activeOrLastSubscription()) {
-            throw new PlanException('no subscriptions found');
+            throw new SubscriptionException('no subscriptions found');
         }
 
-        try {
-            $this->muteSubscriptionEventDispatcher();
-            $renewedSubscription = $this->subscribeTo(
-                $latestSubscription->plan,
-                $latestSubscription->is_recurring,
-                0,
-                Carbon::parse($latestSubscription->starts_at)->diffInDays($latestSubscription->expires_at));
+        $this->muteSubscriptionEventDispatcher();
+        $renewedSubscription = $this->subscribeTo(
+            $latestSubscription->plan,
+            $latestSubscription->is_recurring,
+            0,
+            Carbon::parse($latestSubscription->starts_at)->diffInDays($latestSubscription->expires_at));
 
-            if ($markAsPaid) {
-                $renewedSubscription->update([
-                    'paid_at' => Carbon::now()
-                ]);
-            }
-            $this->resumeSubscriptionEventDispatcher();
-
-            $this->dispatchSubscriptionEvent(new RenewedSubscription($renewedSubscription));
-
-        } catch (Exception $e) {
-            throw new PlanException('could not renew latest subscription');
+        if ($markAsPaid) {
+            $renewedSubscription->update([
+                'paid_at' => Carbon::now()
+            ]);
         }
+        $this->resumeSubscriptionEventDispatcher();
+
+        $renewedSubscription->update([
+            'renewed_at' => Carbon::now()
+        ]);
+
+        $this->dispatchSubscriptionEvent(new SubscriptionRenewed($renewedSubscription));
 
         return $renewedSubscription;
     }
@@ -299,49 +284,57 @@ trait HasPlans
     /**
      * @param bool $markAsPaid
      * @return Subscription
-     * @throws PlanException
+     * @throws SubscriptionException
      */
-    public function renewSubscription(bool $markAsPaid = false): Subscription
+    public function renewExpiringSubscription(bool $markAsPaid = false): Subscription
     {
         if (!$activeSubscription = $this->activeSubscription()) {
-            throw new PlanException('No active subscription found');
+            throw new SubscriptionException('No active subscription found');
         }
 
-        if ($this->hasUnpaidSubscriptions()) {
-            throw new PlanException('Renewing is not possible with unpaid older subscriptions');
+        if (!$activeSubscription->isPaid()) {
+            throw new SubscriptionException('Renewing is not possible if currently active Subscription is not paid');
+        }
+
+        if ($activeSubscription->expires_at < Carbon::tomorrow()->endOfDay()->subSecond()) {
+            throw new SubscriptionException('Renewing is not possible if subscription is expiring earlyer than tomorrow midnight');
+        }
+
+        if ($activeSubscription->expires_at > Carbon::tomorrow()->endOfDay()->addSecond()) {
+            throw new SubscriptionException('Renewing is not possible if subscription is expiring later than tomorrow midnight');
         }
 
         if (!$activeSubscription->is_recurring) {
-            throw new PlanException('Renewing a non-recurring subscription is not possible');
+            throw new SubscriptionException('Renewing a non-recurring subscription is not possible');
         }
 
-        if ($activeSubscription->isCancelled()) {
-            throw new PlanException('Renewing a cancelled subscription is not possible');
+        if ($activeSubscription->isPendingCancellation()) {
+            throw new SubscriptionException('Renewing a subscription that is pending cancellation is not possible');
         }
 
-        try {
-            $this->muteSubscriptionEventDispatcher();
+        $this->muteSubscriptionEventDispatcher();
 
-            /** @var Subscription $renewedSubscription */
-            $renewedSubscription = $this->subscribeTo(
-                $activeSubscription->plan,
-                true,
-                0,
-                Carbon::parse($activeSubscription->starts_at)
-                    ->diffInDays($activeSubscription->expires_at));
+        /** @var Subscription $renewedSubscription */
+        $renewedSubscription = $this->subscribeTo(
+            $activeSubscription->plan,
+            true,
+            0,
+            Carbon::parse($activeSubscription->starts_at)
+                ->diffInDays($activeSubscription->expires_at),
+            Carbon::parse('+ 2 days')->startOfDay());
 
-            if ($markAsPaid) {
-                $renewedSubscription->update([
-                    'paid_at' => Carbon::now()
-                ]);
-            }
-
-            $this->resumeSubscriptionEventDispatcher();
-        } catch (Exception $e) {
-            throw new PlanException('could not renew subscription');
+        if ($markAsPaid) {
+            $renewedSubscription->update([
+                'paid_at' => Carbon::now()
+            ]);
         }
+        $renewedSubscription->update([
+            'renewed_at' => Carbon::now()
+        ]);
 
-        $this->dispatchSubscriptionEvent(new RenewedSubscription( $renewedSubscription));
+        $this->resumeSubscriptionEventDispatcher();
+
+        $this->dispatchSubscriptionEvent(new SubscriptionRenewed( $renewedSubscription));
         return $renewedSubscription;
     }
 }

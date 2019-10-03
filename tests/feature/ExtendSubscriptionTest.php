@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
 use OnlineVerkaufen\Plan\Events\NewSubscription;
 use OnlineVerkaufen\Plan\Events\SubscriptionRenewed;
-use OnlineVerkaufen\Plan\Events\SubscriptionCancelled;
+use OnlineVerkaufen\Plan\Events\SubscriptionExtended;
 use OnlineVerkaufen\Plan\Events\SubscriptionMigrated;
 use OnlineVerkaufen\Plan\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Plan\Exception\SubscriptionException;
@@ -16,7 +16,7 @@ use OnlineVerkaufen\Plan\Test\Models\User;
 use OnlineVerkaufen\Plan\Test\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class CancelSubscriptionTest extends TestCase
+class ExtendSubscriptionTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -39,52 +39,103 @@ class CancelSubscriptionTest extends TestCase
     }
 
     /** @test * */
-    public function can_cancel_a_subscription_immediately(): void
+    public function can_extend_an_existing_subscription(): void
     {
-        $subscription = $this->user->subscribeTo($this->plan, false, 0);
-        $subscription->markAsPaid();
-        $this->assertTrue($subscription->isActive());
-
-        Event::fake();
-        $this->user->cancelSubscription(true);
-        $this->assertFalse($subscription->fresh()->isActive());
-        $this->assertTrue($subscription->fresh()->isCancelled());
-        Event::assertDispatched(SubscriptionCancelled::class);
-    }
-
-    /** @test * */
-    public function can_cancel_a_subscription_on_expiration_date(): void
-    {
-        $subscription = $this->user->subscribeTo($this->plan, false, 0);
-        $subscription->markAsPaid();
-        $this->assertTrue($subscription->isActive());
-
-        Event::fake();
-        $this->user->cancelSubscription(false);
-        $this->assertTrue($subscription->fresh()->isActive());
-        $this->assertFalse($subscription->fresh()->isCancelled());
-        $this->assertTrue($subscription->fresh()->isPendingCancellation());
-        $this->assertEquals($subscription->fresh()->expires_at, $subscription->fresh()->cancelled_at);
-        Event::assertDispatched(SubscriptionCancelled::class);
-    }
-
-    /** @test * */
-    public function can_only_cancel_active_subscriptions(): void
-    {
-        $subscription = factory(Subscription::class)->states('expired')->create([
+        $activeSubscription = factory(Subscription::class)->states('active')->create([
             'model_type' => User::class,
-            'model_id' => $this->user->id
+            'model_id' => $this->user->id,
+            'expires_at' => Carbon::parse('+ 1 weeks')
         ]);
         Event::fake();
-        try{
-            $this->user->cancelSubscription(true);
+        $this->user->extendSubscription(10);
+
+        $subscription = $this->user->activeSubscription();
+        $this->assertTrue($subscription->is($activeSubscription));
+        $this->assertEqualsWithDelta(Carbon::now()->addWeeks(1)->addDays(10)->endOfDay(), $subscription->expires_at, 1);
+        Event::assertDispatched(SubscriptionExtended::class);
+    }
+
+    /** @test * */
+    public function can_only_extend_active_subscriptions(): void
+    {
+        $expiredSubscription = factory(Subscription::class)->states('expired')->create([
+            'model_type' => User::class,
+            'model_id' => $this->user->id,
+            'expires_at' => Carbon::yesterday()
+        ]);
+
+        Event::fake();
+
+        try {
+            $this->user->extendSubscription(10);
         } catch (SubscriptionException $e) {
-            $this->assertFalse($subscription->fresh()->isCancelled());
-            Event::assertNotDispatched(SubscriptionCancelled::class);
+            $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->activeOrLastSubscription()->expires_at, 1);
+            Event::assertNotDispatched(SubscriptionExtended::class);
             return;
         }
 
-        $this->fail('Expected SubscriptionException');
+        $this->fail();
+    }
+
+    /** @test * */
+    public function can_extend_an_existing_subscription_to_a_certain_date(): void
+    {
+        $activeSubscription = factory(Subscription::class)->states('active')->create([
+            'model_type' => User::class,
+            'model_id' => $this->user->id,
+            'expires_at' => Carbon::parse('+ 1 weeks')
+        ]);
+        Event::fake();
+        $this->user->extendSubscriptionTo(Carbon::parse('+ 2 weeks'));
+
+        $subscription = $this->user->activeSubscription();
+        $this->assertTrue($subscription->is($activeSubscription));
+        $this->assertEqualsWithDelta(Carbon::now()->addWeeks(2)->endOfDay(), $subscription->expires_at, 1);
+        Event::assertDispatched(SubscriptionExtended::class);
+    }
+
+    /** @test * */
+    public function can_only_extend_active_subscriptions_to_a_certain_date(): void
+    {
+        $expiredSubscription = factory(Subscription::class)->states('expired')->create([
+            'model_type' => User::class,
+            'model_id' => $this->user->id,
+            'expires_at' => Carbon::yesterday()
+        ]);
+
+        Event::fake();
+
+        try {
+            $this->user->extendSubscriptionTo(Carbon::parse('+ 2 weeks'));
+        } catch (SubscriptionException $e) {
+            $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->activeOrLastSubscription()->expires_at, 1);
+            Event::assertNotDispatched(SubscriptionExtended::class);
+            return;
+        }
+
+        $this->fail();
+    }
+
+
+
+    /** @test * */
+    public function can_migrate_a_yearly_plan_to_a_monthly_plan_on_the_expiry_date(): void
+    {
+        $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
+        $oldSubscription->markAsPaid();
+        $activeSubscription = $this->user->activeSubscription();
+        $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        sleep(1);
+
+        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
+        $newSubscription->markAsPaid();
+
+        $activeSubscription = $this->user->activeSubscription();
+        $this->assertTrue($activeSubscription->is($oldSubscription));
+        $latestSubscription = $this->user->latestSubscription();
+        $this->assertEquals(Plan::TYPE_MONTHLY, $latestSubscription->plan->type);
+        $this->assertEqualsWithDelta($activeSubscription->expires_at, $latestSubscription->starts_at, 1);
     }
 
     /** @test * */
@@ -142,24 +193,6 @@ class CancelSubscriptionTest extends TestCase
         } catch (SubscriptionException $e) {
             $activeSubscription = $this->user->activeSubscription();
             $this->assertTrue($activeSubscription->is($activeSubscription));
-            Event::assertNotDispatched(SubscriptionMigrated::class);
-            return;
-        }
-
-        $this->fail();
-    }
-
-    /** @test * */
-    public function can_only_migrate_active_subscriptions(): void
-    {
-        $oldSubscription = factory(Subscription::class)->states('expired');
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
-        Event::fake();
-
-        try {
-            $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
-        } catch (SubscriptionException $e) {
-            $this->assertFalse($this->user->hasActiveSubscription());
             Event::assertNotDispatched(SubscriptionMigrated::class);
             return;
         }

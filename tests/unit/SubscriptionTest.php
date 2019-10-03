@@ -13,7 +13,7 @@ class SubscriptionTest extends TestCase
 {
 
     /** @test */
-    public function it_knows_the_model_it_is_injected_as_trait(): void
+    public function it_knows_the_model_it_is_assigned_to(): void
     {
       $user = factory(User::class)->create();
       /** @var Subscription $subscription */
@@ -24,21 +24,22 @@ class SubscriptionTest extends TestCase
       $this->assertTrue($subscription->model->is($user));
     }
 
-
-
     /** @test */
     public function can_get_all_active_subscriptions(): void
     {
         $activeSubscriptionA = factory(Subscription::class)->states(['active'])->create();
-        $activeSubscriptionB = factory(Subscription::class)->states(['testing', 'unpaid'])->create();
-        $inactiveSubscriptionC = factory(Subscription::class)->states(['active', 'unpaid'])->create();
-        $inactiveSubscriptionD = factory(Subscription::class)->states(['expired', 'paid'])->create();
-        $inactiveSubscriptionE = factory(Subscription::class)->states(['cancelled', 'paid'])->create();
-        $inactiveSubscriptionF = factory(Subscription::class)->states(['refunded', 'paid'])->create();
+        $activeSubscriptionB = factory(Subscription::class)->states(['testing'])->create();
+        $activeSubscriptionC = factory(Subscription::class)->states(['tolerance'])->create();
 
-        $this->assertCount(2, Subscription::active()->get());
+        factory(Subscription::class)->states(['unpaid'])->create();
+        factory(Subscription::class)->states(['expired'])->create();
+        factory(Subscription::class)->states(['cancelled'])->create();
+        factory(Subscription::class)->states(['refunded'])->create();
+
+        $this->assertCount(3, Subscription::active()->get());
         $this->assertTrue($activeSubscriptionA->is(Subscription::active()->get()[0]));
         $this->assertTrue($activeSubscriptionB->is(Subscription::active()->get()[1]));
+        $this->assertTrue($activeSubscriptionC->is(Subscription::active()->get()[2]));
     }
 
     /** @test */
@@ -54,6 +55,19 @@ class SubscriptionTest extends TestCase
         $this->assertTrue($paidSubscriptionB->is(Subscription::paid()->get()[1]));
         $this->assertTrue($unpaidSubscriptionC->is(Subscription::unpaid()->get()[0]));
         $this->assertTrue($unpaidSubscriptionD->is(Subscription::unpaid()->get()[1]));
+    }
+
+    /** @test */
+    public function can_get_subscriptions_within_payment_tolerance(): void
+    {
+        $subscriptionWithinPaymentToleranceA = factory(Subscription::class)->states(['tolerance'])->create();
+        $paidSubscriptionBWithinPaymentTolerance = factory(Subscription::class)->states(['paid'])->create(['payment_tolerance_ends_at' => Carbon::tomorrow()]);
+        factory(Subscription::class)->states(['unpaid'])->create();
+        factory(Subscription::class)->states(['paid'])->create(['payment_tolerance_ends_at' => Carbon::yesterday()]);
+        $this->assertCount(2, Subscription::withinPaymentTolerance()->get());
+        $this->assertTrue($subscriptionWithinPaymentToleranceA->is(Subscription::withinPaymentTolerance()->get()[0]));
+        $this->assertTrue($paidSubscriptionBWithinPaymentTolerance->is(Subscription::withinPaymentTolerance()->get()[1]));
+
     }
 
     /** @test */

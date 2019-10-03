@@ -13,4 +13,5 @@ return [
         'usage' => Feature\Usage::class,
     ],
 
+    'paymentToleranceDays' => env('PLAN_PAYMENT_TOLERANCE_DAYS', 0)
 ];

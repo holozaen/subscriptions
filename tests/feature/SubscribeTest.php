@@ -5,7 +5,7 @@ namespace OnlineVerkaufen\Plan\Test\feature;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
 use OnlineVerkaufen\Plan\Events\NewSubscription;
-use OnlineVerkaufen\Plan\Events\RenewedSubscription;
+use OnlineVerkaufen\Plan\Events\SubscriptionRenewed;
 use OnlineVerkaufen\Plan\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Plan\Exception\SubscriptionException;
 use OnlineVerkaufen\Plan\Models\Plan;
@@ -37,7 +37,6 @@ class SubscribeTest extends TestCase
         $this->user->subscribeTo($plan);
         Event::assertDispatched(NewSubscription::class);
         $this->assertCount(1, $this->user->subscriptions);
-        $this->assertNull($this->user->activeSubscription());
         /** @var Subscription $subscription */
         $subscription = $this->user->activeOrLastSubscription();
         $this->assertTrue($plan->is($subscription->plan));
@@ -131,7 +130,7 @@ class SubscribeTest extends TestCase
     }
 
     /** @test * */
-    public function subscription_can_not_overlap_active_subscription(): void
+    public function can_not_subscribe_overlapping_active_subscription(): void
     {
         $plan = factory(Plan::class)->states(['duration', 'active'])->create();
         try {
@@ -150,7 +149,7 @@ class SubscribeTest extends TestCase
     }
 
     /** @test * */
-    public function subscription_can_not_overlap_other_future_subscription(): void
+    public function can_not_subscribe_overlapping_other_future_subscription(): void
     {
         $plan = factory(Plan::class)->states(['duration', 'active'])->create();
         try {
@@ -167,6 +166,4 @@ class SubscribeTest extends TestCase
         }
         $this->fail('SubscriptionException expected');
     }
-
-
 }

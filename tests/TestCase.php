@@ -42,5 +42,6 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('plan.models.feature', Feature::class);
         $app['config']->set('plan.models.subscription', Subscription::class);
         $app['config']->set('plan.models.usage', Feature\Usage::class);
+        $app['config']->set('plan.paymentToleranceDays', 0);
     }
 }
