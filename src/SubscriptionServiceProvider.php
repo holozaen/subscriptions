@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\ServiceProvider;
 use OnlineVerkaufen\Subscriptions\Console\Commands\RenewExpiringSubscriptionsCommand;
 
-class PlanServiceProvider extends ServiceProvider
+class SubscriptionServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {

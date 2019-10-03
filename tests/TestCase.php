@@ -2,7 +2,7 @@
 
 namespace OnlineVerkaufen\Subscriptions\Test;
 
-use OnlineVerkaufen\Subscriptions\PlanServiceProvider;
+use OnlineVerkaufen\Subscriptions\SubscriptionServiceProvider;
 use OnlineVerkaufen\Subscriptions\Test\Models\User as TestUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
@@ -30,7 +30,7 @@ abstract class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app)
     {
         return [
-            PlanServiceProvider::class,
+            SubscriptionServiceProvider::class,
         ];
     }
 

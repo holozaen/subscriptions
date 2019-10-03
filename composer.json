@@ -37,7 +37,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "ovc\\Subscriptions\\PlansServiceProvider"
+        "OnlineVerkaufen\\Subscriptions\\SubscriptionServiceProvider"
       ]
     }
   },
