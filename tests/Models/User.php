@@ -1,9 +1,9 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Test\Models;
+namespace OnlineVerkaufen\Subscriptions\Test\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use OnlineVerkaufen\Plan\Models\HasPlans;
+use OnlineVerkaufen\Subscriptions\Models\HasPlans;
 
 class User extends Authenticatable
 {

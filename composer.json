@@ -1,7 +1,7 @@
 {
-  "name": "holozaen/plan",
+  "name": "holozaen/subscriptions",
   "description": "a package for laravel apps providing basic management over plans, features, subscriptions",
-  "homepage": "https://github.com/holozaen/plans",
+  "homepage": "https://github.com/holozaen/subscriptions",
   "license": "MIT",
   "authors": [
     {
@@ -23,12 +23,12 @@
   },
   "autoload": {
     "psr-4": {
-      "OnlineVerkaufen\\Plan\\": "src"
+      "OnlineVerkaufen\\Subscriptions\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "OnlineVerkaufen\\Plan\\Test\\": "tests"
+      "OnlineVerkaufen\\Subscriptions\\Test\\": "tests"
     }
   },
   "scripts": {
@@ -37,7 +37,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "ovc\\Plan\\PlansServiceProvider"
+        "ovc\\Subscriptions\\PlansServiceProvider"
       ]
     }
   },

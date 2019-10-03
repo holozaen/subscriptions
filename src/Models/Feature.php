@@ -1,7 +1,7 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Models;
+namespace OnlineVerkaufen\Subscriptions\Models;
 
 
 use Illuminate\Database\Eloquent\Builder;
@@ -36,7 +36,7 @@ class Feature extends Model
 
     public function plan(): BelongsTo
     {
-        return $this->belongsTo(config('plan.models.plan'), 'plan_id');
+        return $this->belongsTo(config('subscriptions.models.plan'), 'plan_id');
     }
 
     public function scopeCode($query, string $code): Builder

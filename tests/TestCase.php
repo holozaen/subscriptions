@@ -1,13 +1,13 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Test;
+namespace OnlineVerkaufen\Subscriptions\Test;
 
-use OnlineVerkaufen\Plan\PlanServiceProvider;
-use OnlineVerkaufen\Plan\Test\Models\User as TestUser;
+use OnlineVerkaufen\Subscriptions\PlanServiceProvider;
+use OnlineVerkaufen\Subscriptions\Test\Models\User as TestUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use OnlineVerkaufen\Plan\Models\Feature;
-use OnlineVerkaufen\Plan\Models\Plan;
-use OnlineVerkaufen\Plan\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Models\Feature;
+use OnlineVerkaufen\Subscriptions\Models\Plan;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
 
 
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
@@ -38,10 +38,10 @@ abstract class TestCase extends OrchestraTestCase
     {
         $app['config']->set('auth.providers.users.model', TestUser::class);
         $app['config']->set('app.key', 'jklafsdhigbmbfk895hkjhgfkmnbg');
-        $app['config']->set('plan.models.plan', Plan::class);
-        $app['config']->set('plan.models.feature', Feature::class);
-        $app['config']->set('plan.models.subscription', Subscription::class);
-        $app['config']->set('plan.models.usage', Feature\Usage::class);
-        $app['config']->set('plan.paymentToleranceDays', 0);
+        $app['config']->set('subscriptions.models.plan', Plan::class);
+        $app['config']->set('subscriptions.models.feature', Feature::class);
+        $app['config']->set('subscriptions.models.subscription', Subscription::class);
+        $app['config']->set('subscriptions.models.usage', Feature\Usage::class);
+        $app['config']->set('subscriptions.paymentToleranceDays', 0);
     }
 }

@@ -1,20 +1,20 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Models;
+namespace OnlineVerkaufen\Subscriptions\Models;
 
 use Carbon\Carbon;
 use Exception;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use OnlineVerkaufen\Plan\Events\DispatchesSubscriptionEvents;
-use OnlineVerkaufen\Plan\Events\NewSubscription;
-use OnlineVerkaufen\Plan\Events\SubscriptionRenewed;
-use OnlineVerkaufen\Plan\Events\SubscriptionCancelled;
-use OnlineVerkaufen\Plan\Events\SubscriptionExtended;
-use OnlineVerkaufen\Plan\Events\SubscriptionMigrated;
-use OnlineVerkaufen\Plan\Exception\PlanException;
-use OnlineVerkaufen\Plan\Exception\SubscriptionException;
-use OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors\AbstractPlanTypeDateProcessor;
+use OnlineVerkaufen\Subscriptions\Events\DispatchesSubscriptionEvents;
+use OnlineVerkaufen\Subscriptions\Events\NewSubscription;
+use OnlineVerkaufen\Subscriptions\Events\SubscriptionRenewed;
+use OnlineVerkaufen\Subscriptions\Events\SubscriptionCancelled;
+use OnlineVerkaufen\Subscriptions\Events\SubscriptionExtended;
+use OnlineVerkaufen\Subscriptions\Events\SubscriptionMigrated;
+use OnlineVerkaufen\Subscriptions\Exception\PlanException;
+use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
+use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\AbstractPlanTypeDateProcessor;
 
 trait HasPlans
 {
@@ -22,7 +22,7 @@ trait HasPlans
 
     public function subscriptions(): MorphMany
     {
-        return $this->morphMany(config('plan.models.subscription'), 'model');
+        return $this->morphMany(config('subscriptions.models.subscription'), 'model');
     }
 
     /**
@@ -93,7 +93,7 @@ trait HasPlans
                                 int $duration = 30,
                                 $startsAt = null): Subscription
     {
-        $subscriptionModel = config('plan.models.subscription');
+        $subscriptionModel = config('subscriptions.models.subscription');
 
         /** @var AbstractPlanTypeDateProcessor $dateProcessor */
         $dateProcessor = app()->makeWith($plan->type, [

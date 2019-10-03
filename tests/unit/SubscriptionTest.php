@@ -1,13 +1,13 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Test\unit;
+namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use Carbon\Carbon;
-use OnlineVerkaufen\Plan\Exception\SubscriptionException;
-use OnlineVerkaufen\Plan\Models\Subscription;
-use OnlineVerkaufen\Plan\Test\Models\User;
-use OnlineVerkaufen\Plan\Test\TestCase;
+use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Test\Models\User;
+use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class SubscriptionTest extends TestCase
 {

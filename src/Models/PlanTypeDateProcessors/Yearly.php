@@ -1,7 +1,7 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors;
+namespace OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors;
 
 
 use Carbon\CarbonInterface;

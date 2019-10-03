@@ -1,6 +1,6 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Events;
+namespace OnlineVerkaufen\Subscriptions\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;

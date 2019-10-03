@@ -1,7 +1,7 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Exception;
+namespace OnlineVerkaufen\Subscriptions\Exception;
 
 
 class PlanNotFoundException extends AbstractPlanException

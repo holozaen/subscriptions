@@ -1,12 +1,12 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Events;
+namespace OnlineVerkaufen\Subscriptions\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use OnlineVerkaufen\Plan\Models\Feature;
-use OnlineVerkaufen\Plan\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Models\Feature;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
 
 class FeatureConsumed
 {

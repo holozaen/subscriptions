@@ -1,9 +1,9 @@
 <?php /** @noinspection PhpUndefinedVariableInspection */
 
 use Carbon\Carbon;
-use OnlineVerkaufen\Plan\Models\Plan;
-use OnlineVerkaufen\Plan\Models\Subscription;
-use OnlineVerkaufen\Plan\Test\Models\User;
+use OnlineVerkaufen\Subscriptions\Models\Plan;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Test\Models\User;
 
 $factory->define(Subscription::class, function (\Faker\Generator $faker) {
     return [

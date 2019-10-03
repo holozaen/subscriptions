@@ -1,15 +1,15 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Models;
+namespace OnlineVerkaufen\Subscriptions\Models;
 
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors\Duration;
-use OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors\Monthly;
-use OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors\Yearly;
+use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Duration;
+use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Monthly;
+use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Yearly;
 
 /**
  * @property int id
@@ -59,11 +59,11 @@ class Plan extends Model
 
     public function features(): HasMany
     {
-        return $this->hasMany(config('plan.models.feature'), 'plan_id')->orderBy('position', 'ASC');
+        return $this->hasMany(config('subscriptions.models.feature'), 'plan_id')->orderBy('position', 'ASC');
     }
 
     public function subscriptions()
     {
-        return $this->hasMany(config('plan.models.subscription'), 'plan_id');
+        return $this->hasMany(config('subscriptions.models.subscription'), 'plan_id');
     }
 }

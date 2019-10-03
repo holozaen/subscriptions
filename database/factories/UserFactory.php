@@ -1,6 +1,6 @@
 <?php /** @noinspection PhpUndefinedVariableInspection */
 
-use OnlineVerkaufen\Plan\Test\Models\User;
+use OnlineVerkaufen\Subscriptions\Test\Models\User;
 
 $factory->define(User::class, function (\Faker\Generator $faker) {
     return [

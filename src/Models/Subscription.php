@@ -1,7 +1,7 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Models;
+namespace OnlineVerkaufen\Subscriptions\Models;
 
 
 use Carbon\Carbon;
@@ -11,14 +11,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
-use OnlineVerkaufen\Plan\Events\DispatchesSubscriptionEvents;
-use OnlineVerkaufen\Plan\Events\FeatureConsumed;
-use OnlineVerkaufen\Plan\Events\FeatureUnconsumed;
-use OnlineVerkaufen\Plan\Events\SubscriptionPaymentSucceeded;
-use OnlineVerkaufen\Plan\Exception\FeatureException;
-use OnlineVerkaufen\Plan\Exception\FeatureNotFoundException;
-use OnlineVerkaufen\Plan\Exception\SubscriptionException;
-use OnlineVerkaufen\Plan\Models\Feature\Usage;
+use OnlineVerkaufen\Subscriptions\Events\DispatchesSubscriptionEvents;
+use OnlineVerkaufen\Subscriptions\Events\FeatureConsumed;
+use OnlineVerkaufen\Subscriptions\Events\FeatureUnconsumed;
+use OnlineVerkaufen\Subscriptions\Events\SubscriptionPaymentSucceeded;
+use OnlineVerkaufen\Subscriptions\Exception\FeatureException;
+use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
+use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
+use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
 
 /**
  * @property int id
@@ -79,7 +79,7 @@ class Subscription extends Model
 
     public function plan(): BelongsTo
     {
-        return $this->belongsTo(config('plan.models.plan'), 'plan_id');
+        return $this->belongsTo(config('subscriptions.models.plan'), 'plan_id');
     }
 
     public function features(): HasMany
@@ -89,7 +89,7 @@ class Subscription extends Model
 
     public function usages(): HasMany
     {
-        return $this->hasMany(config('plan.models.usage'), 'subscription_id');
+        return $this->hasMany(config('subscriptions.models.usage'), 'subscription_id');
     }
 
     public function scopeActive($query): Builder //regular or testing
@@ -327,7 +327,7 @@ class Subscription extends Model
      */
     private function createEmptyUsage(string $featureCode): Usage
     {
-        $usageModel = config('plan.models.usage');
+        $usageModel = config('subscriptions.models.usage');
 
         /** @var Usage $usage */
         $usage = $this->usages()->save(new $usageModel([

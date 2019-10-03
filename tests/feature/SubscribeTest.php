@@ -1,17 +1,17 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Test\feature;
+namespace OnlineVerkaufen\Subscriptions\Test\feature;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
-use OnlineVerkaufen\Plan\Events\NewSubscription;
-use OnlineVerkaufen\Plan\Events\SubscriptionRenewed;
-use OnlineVerkaufen\Plan\Events\SubscriptionPaymentSucceeded;
-use OnlineVerkaufen\Plan\Exception\SubscriptionException;
-use OnlineVerkaufen\Plan\Models\Plan;
-use OnlineVerkaufen\Plan\Models\Subscription;
-use OnlineVerkaufen\Plan\Test\Models\User;
-use OnlineVerkaufen\Plan\Test\TestCase;
+use OnlineVerkaufen\Subscriptions\Events\NewSubscription;
+use OnlineVerkaufen\Subscriptions\Events\SubscriptionRenewed;
+use OnlineVerkaufen\Subscriptions\Events\SubscriptionPaymentSucceeded;
+use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
+use OnlineVerkaufen\Subscriptions\Models\Plan;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Test\Models\User;
+use OnlineVerkaufen\Subscriptions\Test\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SubscribeTest extends TestCase

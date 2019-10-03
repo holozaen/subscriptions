@@ -1,11 +1,11 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Models\PlanTypeDateProcessors;
+namespace OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors;
 
 
 use Carbon\CarbonInterface;
-use OnlineVerkaufen\Plan\Exception\SubscriptionException;
+use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 
 class Duration extends AbstractPlanTypeDateProcessor
 {

@@ -1,14 +1,14 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Models\Feature;
+namespace OnlineVerkaufen\Subscriptions\Models\Feature;
 
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use OnlineVerkaufen\Plan\Models\Feature;
-use OnlineVerkaufen\Plan\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Models\Feature;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
 
 /**
  * @property int id
@@ -29,7 +29,7 @@ class Usage extends Model
 
     public function subscription(): BelongsTo
     {
-        return $this->belongsTo(config('plan.models.subscription'), 'subscription_id');
+        return $this->belongsTo(config('subscriptions.models.subscription'), 'subscription_id');
     }
 
     public function scopeCode($query, string $code): Builder

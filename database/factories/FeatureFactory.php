@@ -1,7 +1,7 @@
 <?php /** @noinspection PhpUndefinedVariableInspection */
 
-use OnlineVerkaufen\Plan\Models\Feature;
-use OnlineVerkaufen\Plan\Models\Plan;
+use OnlineVerkaufen\Subscriptions\Models\Feature;
+use OnlineVerkaufen\Subscriptions\Models\Plan;
 
 $factory->define(Feature::class, function (\Faker\Generator $faker) {
     return [

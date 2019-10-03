@@ -1,15 +1,15 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Test\feature;
+namespace OnlineVerkaufen\Subscriptions\Test\feature;
 
 use Illuminate\Support\Facades\Event;
-use OnlineVerkaufen\Plan\Events\FeatureConsumed;
-use OnlineVerkaufen\Plan\Events\FeatureUnconsumed;
-use OnlineVerkaufen\Plan\Exception\FeatureException;
-use OnlineVerkaufen\Plan\Exception\FeatureNotFoundException;
-use OnlineVerkaufen\Plan\Models\Feature;
-use OnlineVerkaufen\Plan\Models\Subscription;
-use OnlineVerkaufen\Plan\Test\TestCase;
+use OnlineVerkaufen\Subscriptions\Events\FeatureConsumed;
+use OnlineVerkaufen\Subscriptions\Events\FeatureUnconsumed;
+use OnlineVerkaufen\Subscriptions\Exception\FeatureException;
+use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
+use OnlineVerkaufen\Subscriptions\Models\Feature;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class ConsumeFeatureTest extends TestCase
 {

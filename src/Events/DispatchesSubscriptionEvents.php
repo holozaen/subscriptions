@@ -1,7 +1,7 @@
 <?php
 
 
-namespace OnlineVerkaufen\Plan\Events;
+namespace OnlineVerkaufen\Subscriptions\Events;
 
 
 trait DispatchesSubscriptionEvents

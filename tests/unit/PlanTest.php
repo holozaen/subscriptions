@@ -1,12 +1,12 @@
 <?php
 
-namespace OnlineVerkaufen\Plan\Test\unit;
+namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
-use OnlineVerkaufen\Plan\Models\Plan;
-use OnlineVerkaufen\Plan\Models\Subscription;
-use OnlineVerkaufen\Plan\Test\Models\User;
-use OnlineVerkaufen\Plan\Test\TestCase;
+use OnlineVerkaufen\Subscriptions\Models\Plan;
+use OnlineVerkaufen\Subscriptions\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Test\Models\User;
+use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class PlanTest extends TestCase
 {
