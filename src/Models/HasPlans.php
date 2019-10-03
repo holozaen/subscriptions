@@ -296,12 +296,8 @@ trait HasPlans
             throw new SubscriptionException('Renewing is not possible if currently active Subscription is not paid');
         }
 
-        if ($activeSubscription->expires_at < Carbon::tomorrow()->endOfDay()->subSecond()) {
+        if (!$activeSubscription->isExpiring()) {
             throw new SubscriptionException('Renewing is not possible if subscription is expiring earlyer than tomorrow midnight');
-        }
-
-        if ($activeSubscription->expires_at > Carbon::tomorrow()->endOfDay()->addSecond()) {
-            throw new SubscriptionException('Renewing is not possible if subscription is expiring later than tomorrow midnight');
         }
 
         if (!$activeSubscription->is_recurring) {

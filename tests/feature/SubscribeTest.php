@@ -35,15 +35,14 @@ class SubscribeTest extends TestCase
         Event::fake();
         $plan = factory(Plan::class)->states(['active', 'yearly'])->create();
         $this->user->subscribeTo($plan);
-        Event::assertDispatched(NewSubscription::class);
         $this->assertCount(1, $this->user->subscriptions);
         /** @var Subscription $subscription */
         $subscription = $this->user->activeOrLastSubscription();
+        $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
+        $this->assertEqualsWithDelta(Carbon::now()->addYear()->endOfDay(), $subscription->expires_at, 1);
         $this->assertTrue($plan->is($subscription->plan));
         $this->assertEquals($plan->price, $subscription->price);
         $this->assertEquals($plan->currency, $subscription->currency);
-        $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
-        $this->assertEqualsWithDelta(Carbon::now()->addYear()->endOfDay(), $subscription->expires_at, 1);
         $this->assertEquals(Carbon::now()->addYear()->diffInDays(Carbon::now()), $subscription->remaining_days);
 
         $this->assertTrue($subscription->is_recurring);
@@ -52,8 +51,8 @@ class SubscribeTest extends TestCase
         $this->assertFalse($subscription->isTesting());
         $this->assertFalse($subscription->isPaid());
         $this->assertFalse($subscription->isActive());
+        Event::assertDispatched(NewSubscription::class);
 
-        Event::fake();
         $subscription->markAsPaid();
         Event::assertDispatched(SubscriptionPaymentSucceeded::class);
         $this->assertTrue($subscription->fresh()->isPaid());

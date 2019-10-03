@@ -18,16 +18,12 @@ $factory->define(Subscription::class, function (\Faker\Generator $faker) {
 
 $factory->state(Subscription::class, 'paid', function() {
     return [
-        'starts_at' => Carbon::parse('-10 days'),
-        'expires_at' => Carbon::parse('+10 days'),
         'paid_at' => Carbon::now()
     ];
 });
 
 $factory->state(Subscription::class, 'unpaid', function() {
     return [
-        'starts_at' => Carbon::parse('-10 days'),
-        'expires_at' => Carbon::parse('+10 days'),
         'paid_at' => null
     ];
 });
@@ -68,13 +64,21 @@ $factory->state(Subscription::class, 'testing', function() {
         'expires_at' => Carbon::parse('+20 days'),
   ];
 });
+$factory->state(Subscription::class, 'expiring', function() {
+    return [
+        'paid_at' => Carbon::parse('-40 days'),
+        'starts_at' => Carbon::parse('-30 days'),
+        'expires_at' => Carbon::tomorrow()->endOfDay(),
+    ];
+});
+
 $factory->state(Subscription::class, 'expired', function() {
     return [
         'paid_at' => Carbon::parse('-40 days'),
         'starts_at' => Carbon::parse('-30 days'),
         'expires_at' => Carbon::parse('-1 days'),
         'payment_tolerance_ends_at' => Carbon::parse('-30 days')
-  ];
+    ];
 });
 $factory->state(Subscription::class, 'upcoming', function() {
     return [

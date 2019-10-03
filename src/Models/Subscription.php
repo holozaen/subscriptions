@@ -44,7 +44,9 @@ use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
  * @property int remaining_days
  *
  * @method static Builder active
+ * @method static Builder expiring
  * @method static Builder paid
+ * @method static Builder recurring
  * @method static Builder unpaid
  * @method static Builder withinPaymentTolerance
  */
@@ -135,9 +137,20 @@ class Subscription extends Model
         return $query->whereNotNull('paid_at');
     }
 
+    public function scopeRecurring($query): Builder
+    {
+        return $query->where('is_recurring', 1);
+    }
+
     public function scopeUnpaid($query): Builder
     {
         return $query->whereNull('paid_at');
+    }
+
+    public function scopeExpiring($query): Builder
+    {
+        return $query->where('expires_at', '>', Carbon::tomorrow()->endOfDay()->subSecond())
+            ->where('expires_at', '<=', Carbon::tomorrow()->endOfDay()->addSecond());
     }
 
     public function scopeUpcoming($query): Builder
@@ -183,6 +196,12 @@ class Subscription extends Model
     public function isRenewed(): bool
     {
         return ($this->renewed_at !== null);
+    }
+
+    public function isExpiring(): bool
+    {
+        return ($this->expires_at > Carbon::tomorrow()->endOfDay()->subSecond() &&
+            $this->expires_at < Carbon::tomorrow()->endOfDay()->addSecond());
     }
 
     public function hasExpired(): bool

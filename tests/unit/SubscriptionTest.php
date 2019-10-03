@@ -110,6 +110,34 @@ class SubscriptionTest extends TestCase
     }
 
     /** @test */
+    public function can_get_expiring_subscriptions(): void
+    {
+        $expiringSubscriptionA = factory(Subscription::class)->states(['expiring'])->create();
+        $expiringSubscriptionB = factory(Subscription::class)->states(['expiring'])->create();
+        $activeSubscriptionC = factory(Subscription::class)->states(['active'])->create([
+            'expires_at' => Carbon::tomorrow()->endOfDay()->subSecond(2)
+        ]);
+        $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create([
+            'expires_at' => Carbon::tomorrow()->endOfDay()->addSecond(2)
+        ]);
+        $this->assertCount(2, Subscription::expiring()->get());
+        $this->assertTrue($expiringSubscriptionA->is(Subscription::expiring()->get()[0]));
+        $this->assertTrue($expiringSubscriptionB->is(Subscription::expiring()->get()[1]));
+    }
+
+    /** @test */
+    public function can_get_recurring_subscriptions(): void
+    {
+        $recurringSubscriptionA = factory(Subscription::class)->states(['recurring'])->create();
+        $recurringSubscriptionB = factory(Subscription::class)->states(['recurring'])->create();
+        factory(Subscription::class)->states(['nonrecurring'])->create();
+        factory(Subscription::class)->states(['nonrecurring'])->create();
+        $this->assertCount(2, Subscription::recurring()->get());
+        $this->assertTrue($recurringSubscriptionA->is(Subscription::recurring()->get()[0]));
+        $this->assertTrue($recurringSubscriptionB->is(Subscription::recurring()->get()[1]));
+    }
+
+    /** @test */
     public function can_get_the_correct_remaining_days_of_a_subscription(): void
     {
         $subscription = factory(Subscription::class)->states('active')->create([
