@@ -15,7 +15,7 @@ use OnlineVerkaufen\Plan\Test\Models\User;
 use OnlineVerkaufen\Plan\Test\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class MigrateTest extends TestCase
+class MigrateSubscriptionTest extends TestCase
 {
     use RefreshDatabase;
 

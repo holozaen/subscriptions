@@ -81,7 +81,6 @@ trait HasPlans
     /**
      * @param Plan $plan
      * @param bool $isRecurring
-     * @param bool $isRenewal
      * @param int $testingDays
      * @param int $duration
      * @param mixed | null $startsAt
@@ -95,10 +94,6 @@ trait HasPlans
                                 $startsAt = null): Subscription
     {
         $subscriptionModel = config('plan.models.subscription');
-
-        if ($plan->type === Plan::TYPE_DURATION && $duration < 1) {
-            throw new SubscriptionException('A subscription has to have a duration that is greater than');
-        }
 
         try {
             /** @var AbstractPlanTypeDateProcessor $dateProcessor */
@@ -282,16 +277,17 @@ trait HasPlans
     /**
      * @param bool $immediate
      * @return Subscription
-     * @throws PlanException
      * @throws SubscriptionException
      */
     public function cancelSubscription(bool $immediate = false): Subscription
     {
         /** @var Subscription $subscription */
-        if (!$subscription = $this->hasActiveSubscription()) {
-            throw new PlanException('No active subscription found');
+        if (!$this->hasActiveSubscription()) {
+            throw new SubscriptionException('No active subscription found');
         }
 
+        $subscription = $this->activeSubscription();
+        /** @noinspection NullPointerExceptionInspection */
         $subscription->cancel($immediate);
 
         $this->dispatchSubscriptionEvent(new SubscriptionCancelled($subscription));
