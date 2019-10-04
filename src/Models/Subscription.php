@@ -98,38 +98,42 @@ class Subscription extends Model
     {
         return $query->where(
             static function($query) {
-                return $query->where(Carbon::now(), '>=', DB::raw('starts_at')) // is started
-                ->where(function($query) {
-                    return $query->whereNotNull('paid_at')->orWhere(DB::raw('payment_tolerance_ends_at'), '>', Carbon::now());}) // is paid or whithin payment tolerance
-                ->where(Carbon::now(),'<=',  DB::raw('expires_at')) // has not expired
+                return $query->where('starts_at','<=', Carbon::now()) // is started
+                ->where(static function($query) {
+                    return $query->whereNotNull('paid_at')
+                        ->orWhere('payment_tolerance_ends_at', '>', Carbon::now());
+                }) // is paid or whithin payment tolerance
+                ->where('expires_at' ,'>=',  Carbon::now()) // has not expired
                 ->where(static function($query) {  // is not cancelled
                     return $query->whereNull('cancelled_at')
-                        ->orWhere(DB::raw('cancelled_at'), '>', Carbon::now()); // not cancelled
+                        ->orWhere('cancelled_at', '>', Carbon::now()); // not cancelled
                 })
                     ->whereNull('refunded_at'); // is not refunded
             }
         )
             ->orWhere(static function ($query) {
-                return $query->whereNotNull('test_ends_at')->where(Carbon::now(),'<', DB::raw('test_ends_at'));
+                return $query->whereNotNull('test_ends_at')->where('test_ends_at','>', Carbon::now());
             });
     }
 
     public function scopeRegular($query): Builder
     {
-        return $query->where(Carbon::now(), '>=', DB::raw('starts_at')) // is started
-                    ->where(function($query) {
-                        return $query->whereNotNull('paid_at')->orWhere(DB::raw('payment_tolerance_ends_at'), '>', Carbon::now());}) // is paid or whithin payment tolerance
-                    ->where(Carbon::now(),'<=',  DB::raw('expires_at')) // has not expired
-                    ->where(static function($query) {  // is not cancelled
-                        return $query->whereNull('cancelled_at')
-                            ->orWhere(DB::raw('cancelled_at'), '>', Carbon::now()); // not cancelled
-                    })
-                    ->whereNull('refunded_at'); // is not refunded
+        return $query->where('starts_at','<=', Carbon::now()) // is started
+        ->where(static function($query) {
+            return $query->whereNotNull('paid_at')
+                ->orWhere('payment_tolerance_ends_at', '>', Carbon::now());
+        }) // is paid or whithin payment tolerance
+        ->where('expires_at' ,'>=',  Carbon::now()) // has not expired
+        ->where(static function($query) {  // is not cancelled
+            return $query->whereNull('cancelled_at')
+                ->orWhere('cancelled_at', '>', Carbon::now()); // not cancelled
+        })
+            ->whereNull('refunded_at'); // is not refunded
     }
 
     public function scopeTesting($query): Builder
     {
-        return $query->whereNotNull('test_ends_at')->where(Carbon::now(),'<', DB::raw('test_ends_at'));
+        return $query->whereNotNull('test_ends_at')->where('test_ends_at','>', Carbon::now());
     }
 
     public function scopePaid($query): Builder
