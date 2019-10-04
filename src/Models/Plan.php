@@ -74,21 +74,23 @@ class Plan extends Model
         return $this->hasMany(config('subscriptions.models.subscription'), 'plan_id');
     }
 
-    public function getPlanTypeDefinition(): array
+    public function getPlanTypeDefinition($code = null): array
     {
-        $typeCode = $this->type;
-        $definitionArray = array_filter($this::PLAN_TYPES, static function ($type)  use ($typeCode) { return $type['code'] === $typeCode; });
+        if (!$code) {
+            $code = $this->type;
+        }
+        $definitionArray = array_filter($this::PLAN_TYPES, static function ($type)  use ($code) { return $type['code'] === $code; });
         if (is_array($definitionArray)) {
             return array_shift($definitionArray);
         }
         return null;
     }
 
-    public function getPlanTypeDateProcessorClass(): string
+    public function getPlanTypeDateProcessorClass($code = null): string
     {
-        $typeDefinition = $this->getPlanTypeDefinition();
+        $typeDefinition = $this->getPlanTypeDefinition($code);
         if (is_array($typeDefinition) && array_key_exists('class', $typeDefinition)) {
-            return $this->getPlanTypeDefinition()['class'];
+            return $this->getPlanTypeDefinition($code)['class'];
         }
         return null;
     }
