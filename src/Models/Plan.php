@@ -22,6 +22,8 @@ use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Yearly;
  * @property int price
  * @property string currency
  * @property int duration
+ * @property array plan_type_definition
+ * @property string plan_type_date_processor
  *
  * @method static Builder active
  * @method static Builder disabled
@@ -74,23 +76,30 @@ class Plan extends Model
         return $this->hasMany(config('subscriptions.models.subscription'), 'plan_id');
     }
 
-    public function getPlanTypeDefinition($code = null): array
+    public function getPlanTypeDefinitionAttribute(): array
     {
-        if (!$code) {
-            $code = $this->type;
-        }
-        $definitionArray = array_filter($this::PLAN_TYPES, static function ($type)  use ($code) { return $type['code'] === $code; });
+        return $this::getPlanTypeDefinitionForCode($this->type);
+    }
+
+    public function getPlanTypeDateProcessorAttribute(): string
+    {
+        return $this::getPlanTypeDateProcessorClassForCode($this->type);
+    }
+
+    public static function getPlanTypeDefinitionForCode(string $code): array
+    {
+        $definitionArray = array_filter(self::PLAN_TYPES, static function ($type)  use ($code) { return $type['code'] === $code; });
         if (is_array($definitionArray)) {
             return array_shift($definitionArray);
         }
         return null;
     }
 
-    public function getPlanTypeDateProcessorClass($code = null): string
+    public static function getPlanTypeDateProcessorClassForCode(string $code): string
     {
-        $typeDefinition = $this->getPlanTypeDefinition($code);
+        $typeDefinition = self::getPlanTypeDefinitionForCode($code);
         if (is_array($typeDefinition) && array_key_exists('class', $typeDefinition)) {
-            return $this->getPlanTypeDefinition($code)['class'];
+            return $typeDefinition['class'];
         }
         return null;
     }

@@ -53,34 +53,34 @@ class PlanTest extends TestCase
     /** @test */
     public function can_get_the_plan_type_definition_for_a_plan(): void
     {
+        /** @var Plan $plan */
         $plan = factory(Plan::class)->state('yearly')->create();
         $this->assertEquals([
             'code' => 'yearly',
             'class' => Yearly::class
-        ], $plan->getPlanTypeDefinition());
+        ], $plan->plan_type_definition);
     }
 
     /** @test */
     public function can_get_the_plan_type_definition_for_a_specific_plan_code(): void
     {
-        $plan = app()->make(Plan::class);
         $this->assertEquals([
             'code' => 'yearly',
             'class' => Yearly::class
-        ], $plan->getPlanTypeDefinition('yearly'));
+        ], Plan::getPlanTypeDefinitionForCode('yearly'));
     }
 
     /** @test */
-    public function can_get_the_plan_type_date_processor_class(): void
+    public function can_get_the_plan_type_date_processor_class_name(): void
     {
+        /** @var Plan $plan */
         $plan = factory(Plan::class)->state('yearly')->create();
-        $this->assertEquals(Yearly::class, $plan->getPlanTypeDateProcessorClass());
+        $this->assertEquals(Yearly::class, $plan->plan_type_date_processor);
     }
 
     /** @test */
     public function can_get_the_plan_type_date_processor_class_for_a_specific_plan_code(): void
     {
-        $plan = app()->make(Plan::class);
-        $this->assertEquals(Yearly::class, $plan->getPlanTypeDateProcessorClass('yearly'));
+        $this->assertEquals(Yearly::class, Plan::getPlanTypeDateProcessorClassForCode('yearly'));
     }
 }

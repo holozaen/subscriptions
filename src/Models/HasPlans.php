@@ -97,7 +97,7 @@ trait HasPlans
         $subscriptionModel = config('subscriptions.models.subscription');
 
         /** @var AbstractPlanTypeDateProcessor $dateProcessor */
-        $dateProcessor = app()->makeWith($plan->getPlanTypeDateProcessorClass(), [
+        $dateProcessor = app()->makeWith($plan->plan_type_date_processor, [
             'testingDays' => $testingDays,
             'startAt' => $startsAt,
             'duration' => $duration
