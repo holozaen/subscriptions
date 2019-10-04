@@ -177,6 +177,16 @@ class Subscription extends Model
         return (null !== $this->test_ends_at && Carbon::now()->lessThan(Carbon::parse($this->test_ends_at)));
     }
 
+    public function isUpcoming(): bool
+    {
+        return $this->starts_at > Carbon::now();
+    }
+
+    public function isWithinPaymentToleranceTime(): bool
+    {
+        return (Carbon::now()->lessThan(Carbon::parse($this->payment_tolerance_ends_at)));
+    }
+
     public function isPaid(): bool
     {
         return $this->paid_at !== null;
@@ -190,6 +200,11 @@ class Subscription extends Model
     public function isPendingCancellation(): bool
     {
         return ($this->cancelled_at !== null && $this->cancelled_at >= Carbon::now());
+    }
+
+    public function isRecurring(): bool
+    {
+        return ($this->is_recurring === true);
     }
 
     public function isRefunded(): bool
@@ -220,7 +235,7 @@ class Subscription extends Model
         }
 
         return ($this->hasStarted() &&
-            $this->isPaid() &&
+            ($this->isPaid() || $this->isWithinPaymentToleranceTime()) &&
             !$this->hasExpired() &&
             !$this->isCancelled() &&
             !$this->isRefunded());
