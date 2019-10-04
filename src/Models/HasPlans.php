@@ -85,6 +85,7 @@ trait HasPlans
      * @param int $duration
      * @param mixed | null $startsAt
      * @return Subscription
+     * @throws PlanException
      * @throws SubscriptionException
      */
     public function subscribeTo(Plan $plan,
@@ -96,7 +97,7 @@ trait HasPlans
         $subscriptionModel = config('subscriptions.models.subscription');
 
         /** @var AbstractPlanTypeDateProcessor $dateProcessor */
-        $dateProcessor = app()->makeWith($plan->type, [
+        $dateProcessor = app()->makeWith($plan->getPlanTypeDateProcessorClass(), [
             'testingDays' => $testingDays,
             'startAt' => $startsAt,
             'duration' => $duration
@@ -167,7 +168,7 @@ trait HasPlans
 
             $newSubscription = $this->subscribeTo($plan,
                 $isRecurring,
-                false,
+                0,
                 $duration,
                 $immediate ? Carbon::now() : $previousSubscription->expires_at);
 

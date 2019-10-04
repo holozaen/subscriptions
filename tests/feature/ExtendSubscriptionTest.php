@@ -124,7 +124,7 @@ class ExtendSubscriptionTest extends TestCase
         $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
-        $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        $this->assertEquals('yearly', $activeSubscription->plan->type);
         sleep(1);
 
         $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
@@ -134,7 +134,7 @@ class ExtendSubscriptionTest extends TestCase
         $activeSubscription = $this->user->activeSubscription();
         $this->assertTrue($activeSubscription->is($oldSubscription));
         $latestSubscription = $this->user->latestSubscription();
-        $this->assertEquals(Plan::TYPE_MONTHLY, $latestSubscription->plan->type);
+        $this->assertEquals('monthly', $latestSubscription->plan->type);
         $this->assertEqualsWithDelta($activeSubscription->expires_at, $latestSubscription->starts_at, 1);
     }
 
@@ -144,7 +144,7 @@ class ExtendSubscriptionTest extends TestCase
         $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
-        $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
         $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
@@ -162,7 +162,7 @@ class ExtendSubscriptionTest extends TestCase
         $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
-        $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        $this->assertEquals('yearly', $activeSubscription->plan->type);
         $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
         Event::fake();
 
@@ -182,7 +182,7 @@ class ExtendSubscriptionTest extends TestCase
     {
         $oldSubscription = $this->user->subscribeTo($this->plan, false, 30);
         $activeSubscription = $this->user->activeSubscription();
-        $this->assertEquals(Plan::TYPE_YEARLY, $activeSubscription->plan->type);
+        $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
         $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();

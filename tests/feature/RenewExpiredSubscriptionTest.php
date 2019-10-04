@@ -50,7 +50,7 @@ class RenewExpiredSubscriptionTest extends TestCase
         $this->user->renewExpiredSubscription(true);
 
         $subscription = $this->user->activeSubscription();
-        $this->assertEquals(Plan::TYPE_YEARLY, $subscription->plan->type);
+        $this->assertEquals('yearly', $subscription->plan->type);
         $this->assertEqualsWithDelta(Carbon::now()->addYear()->endOfDay(), $subscription->expires_at, 1);
         Event::assertDispatched(SubscriptionRenewed::class);
         Event::assertNotDispatched(NewSubscription::class);

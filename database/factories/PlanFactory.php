@@ -6,9 +6,9 @@ use OnlineVerkaufen\Subscriptions\Models\Plan;
 $factory->define(Plan::class, function (\Faker\Generator $faker) {
     return [
         'position' => $faker->numberBetween(0, 10),
-        'state' => $faker->randomElement([Plan::STATE_DISABLED, Plan::STATE_ACTIVE_INVISIBLE, Plan::STATE_ACTIVE]),
+        'state' => $faker->randomElement([Plan::STATE_DISABLED, Plan::STATE_ACTIVE]),
         'name' => 'Testing Plan '.$faker->randomElement(['Bronze', 'Silver', 'Gold']),
-        'type' => $faker->randomElement([Plan::TYPE_YEARLY, Plan::TYPE_MONTHLY, Plan::TYPE_DURATION]),
+        'type' => $faker->randomElement(array_map(function($type) { return $type['code']; }, Plan::PLAN_TYPES)),
         'description' => $faker->paragraph,
         'price' => $faker->randomElement([9900,29900,59900]),
         'currency' => 'CHF',
@@ -20,11 +20,6 @@ $factory->state(Plan::class, 'active', function() {
         'state' => Plan::STATE_ACTIVE
     ];
 });
-$factory->state(Plan::class, 'invisible', function() {
-    return [
-        'state' => Plan::STATE_ACTIVE_INVISIBLE
-    ];
-});
 $factory->state(Plan::class, 'disabled', function() {
     return [
         'state' => Plan::STATE_DISABLED
@@ -32,17 +27,17 @@ $factory->state(Plan::class, 'disabled', function() {
 });
 $factory->state(Plan::class, 'yearly', function() {
     return [
-        'type' => Plan::TYPE_YEARLY
+        'type' => 'yearly'
     ];
 });
 $factory->state(Plan::class, 'monthly', function() {
     return [
-        'type' => Plan::TYPE_MONTHLY
+        'type' => 'monthly'
     ];
 });
 $factory->state(Plan::class, 'duration', function() {
     return [
-        'type' => Plan::TYPE_DURATION
+        'type' => 'duration'
     ];
 });
 

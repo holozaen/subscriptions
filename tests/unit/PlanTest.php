@@ -4,37 +4,29 @@ namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use OnlineVerkaufen\Subscriptions\Models\Plan;
+use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Yearly;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
-use OnlineVerkaufen\Subscriptions\Test\Models\User;
 use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class PlanTest extends TestCase
 {
+    /** @var Plan */
     private $activePlanA;
-    private $invisiblePlanB;
-    private $disabledPlanC;
+
+    /** @var Plan */
+    private $disabledPlanB;
 
     public function setUp(): void
     {
         parent::setUp();
         $this->activePlanA = factory(Plan::class)->states(['active'])->create();
-        $this->invisiblePlanB = factory(Plan::class)->states(['invisible'])->create();
-        $this->disabledPlanC = factory(Plan::class)->states(['disabled'])->create();
+        $this->disabledPlanB = factory(Plan::class)->states(['disabled'])->create();
     }
 
     /** @test */
     public function can_get_the_active_plans(): void
     {
         $plans = Plan::active()->get();
-        $this->assertCount(2, $plans);
-        $this->assertTrue($plans->shift()->is($this->activePlanA));
-        $this->assertTrue($plans->shift()->is($this->invisiblePlanB));
-    }
-
-    /** @test */
-    public function can_get_the_visible_plans(): void
-    {
-        $plans = Plan::visible()->get();
         $this->assertCount(1, $plans);
         $this->assertTrue($plans->shift()->is($this->activePlanA));
     }
@@ -44,7 +36,7 @@ class PlanTest extends TestCase
     {
         $plans = Plan::disabled()->get();
         $this->assertCount(1, $plans);
-        $this->assertTrue($plans->shift()->is($this->disabledPlanC));
+        $this->assertTrue($plans->shift()->is($this->disabledPlanB));
     }
 
     /** @test */
@@ -58,4 +50,20 @@ class PlanTest extends TestCase
         $this->assertTrue($plan->subscriptions()->first()->is($subscription));
     }
 
+    /** @test */
+    public function can_get_the_plan_type_definition_for_a_plan_code(): void
+    {
+        $plan = factory(Plan::class)->state('yearly')->create();
+        $this->assertEquals([
+            'code' => 'yearly',
+            'class' => Yearly::class
+        ], $plan->getPlanTypeDefinition());
+    }
+
+    /** @test */
+    public function can_get_the_plan_type_date_processor_class(): void
+    {
+        $plan = factory(Plan::class)->state('yearly')->create();
+        $this->assertEquals(Yearly::class, $plan->getPlanTypeDateProcessorClass());
+    }
 }
