@@ -12,7 +12,6 @@ use OnlineVerkaufen\Subscriptions\Events\SubscriptionRenewed;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionCancelled;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionExtended;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionMigrated;
-use OnlineVerkaufen\Subscriptions\Exception\PlanException;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\AbstractPlanTypeDateProcessor;
 
@@ -30,6 +29,7 @@ trait HasPlans
      */
     public function activeSubscription(): ?Subscription
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $this->subscriptions()->active()->first();
     }
 
@@ -38,6 +38,7 @@ trait HasPlans
      */
     public function upcomingSubscription(): ?Subscription
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $this->subscriptions()->upcoming()->first();
     }
 
@@ -46,6 +47,7 @@ trait HasPlans
      */
     public function latestSubscription(): ?Subscription
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->subscriptions()->latest('created_at')->first();
     }
 
@@ -70,6 +72,7 @@ trait HasPlans
 
     public function hasUnpaidSubscriptions(): bool
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return (bool)$this->subscriptions()->unpaid()->first();
     }
 
@@ -85,7 +88,6 @@ trait HasPlans
      * @param int $duration
      * @param mixed | null $startsAt
      * @return Subscription
-     * @throws PlanException
      * @throws SubscriptionException
      */
     public function subscribeTo(Plan $plan,
@@ -126,7 +128,7 @@ trait HasPlans
                 'currency' => $plan->currency,
                 'is_recurring' => $isRecurring,
             ]));
-            if (false === $subscription) {
+            if (false === $subscription || null === $subscription) {
                 throw new SubscriptionException('could not attach subscription');
             }
         } catch (Exception $ex) {
@@ -191,6 +193,7 @@ trait HasPlans
         if (!$activeSubscription  = $this->activeSubscription()) {
             throw new SubscriptionException('no active subscription found');
         }
+        /** @noinspection PhpUndefinedMethodInspection */
         $activeSubscription->update([
             'expires_at' => Carbon::parse($activeSubscription->expires_at)->addDays($days)->endOfDay(),
         ]);

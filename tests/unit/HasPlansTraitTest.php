@@ -11,11 +11,6 @@ use OnlineVerkaufen\Subscriptions\Test\TestCase;
 class HasPlansTraitTest extends TestCase
 {
 
-    public function setUp(): void
-    {
-        parent::setUp();
-    }
-
     /** @test */
     public function active_or_last_subscription_returns_active_subscription_if_exists(): void
     {
@@ -60,7 +55,7 @@ class HasPlansTraitTest extends TestCase
         /** @var User $user */
         $user = $paidSubscription->model;
         $this->assertFalse($user->hasUnpaidSubscriptions());
-        $unpaidSubscription= factory(Subscription::class)->states('unpaid')->create([
+        factory(Subscription::class)->states('unpaid')->create([
             'model_type' => User::class,
             'model_id' => $user->id
         ]);
@@ -75,7 +70,7 @@ class HasPlansTraitTest extends TestCase
         /** @var User $user */
         $user = $activeSubscription->model;
         $this->assertFalse($user->hasUpcomingSubscription());
-        $testingSubscription = factory(Subscription::class)->states('testing')->create([
+        factory(Subscription::class)->states('testing')->create([
             'model_type' => User::class,
             'model_id' => $user->id
         ]);

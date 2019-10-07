@@ -4,10 +4,7 @@ namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use OnlineVerkaufen\Subscriptions\Models\Feature;
-use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
-use OnlineVerkaufen\Subscriptions\Models\Plan;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
-use OnlineVerkaufen\Subscriptions\Test\Models\User;
 use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class FeatureTest extends TestCase
@@ -62,8 +59,11 @@ class FeatureTest extends TestCase
     public function counts_are_correct(): void
     {
         $this->assertEquals($this->subscription->features()->count(), 3);
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEquals($this->subscription->features()->limited()->count(), 1);
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEquals($this->subscription->features()->unlimited()->count(), 1);
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEquals($this->subscription->features()->feature()->count(), 1);
         $this->assertEquals($this->subscription->usages()->count(), 0);
     }
@@ -72,6 +72,7 @@ class FeatureTest extends TestCase
     public function info_on_limited_feature_is_correct(): void
     {
         /** @var Feature $unlimitedFeature */
+        /** @noinspection PhpUndefinedMethodInspection */
         $unlimitedFeature = $this->subscription->features()->code('feature.limited')->first();
         $this->assertTrue($unlimitedFeature->isLimitType());
         $this->assertTrue($unlimitedFeature->isLimited());
@@ -83,6 +84,7 @@ class FeatureTest extends TestCase
     public function info_on_unlimited_feature_is_correct(): void
     {
         /** @var Feature $unlimitedFeature */
+        /** @noinspection PhpUndefinedMethodInspection */
         $unlimitedFeature = $this->subscription->features()->code('feature.unlimited')->first();
         $this->assertTrue($unlimitedFeature->isLimitType());
         $this->assertFalse($unlimitedFeature->isLimited());

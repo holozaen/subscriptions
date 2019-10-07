@@ -14,6 +14,7 @@ class SubscriptionServiceProvider extends ServiceProvider
             __DIR__ . '/../config/subscriptions.php' => config_path('subscriptions.php'),
         ], 'config');
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->app->make(Factory::class)->load(__DIR__ . '/../database/factories');
 
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations/');

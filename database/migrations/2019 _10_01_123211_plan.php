@@ -6,6 +6,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
 
+/** @noinspection AutoloadingIssuesInspection */
+
 class Plan extends Migration
 {
     /**
@@ -61,6 +63,7 @@ class Plan extends Migration
             $table->boolean('is_recurring')->default(true);
 
             $table->timestamp('test_ends_at')->nullable()->default(Carbon::now());
+            /** @noinspection PhpUndefinedMethodInspection */
             $table->timestamp('payment_tolerance_ends_at')->nullable()->default(config('subscriptions.paymentToleranceDays') > 0 ? Carbon::now()->addDays(config('subscriptions.paymentToleranceDays'))->endOfDay() : Carbon::now());
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('starts_at')->nullable();

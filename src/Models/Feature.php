@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 
 namespace OnlineVerkaufen\Subscriptions\Models;
@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static Builder feature
  * @method static Builder limited
  * @method static Builder unlimited
+ * @method static create(array $array)
  */
 class Feature extends Model
 {
@@ -41,21 +42,25 @@ class Feature extends Model
 
     public function scopeCode($query, string $code): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('code', $code);
     }
 
     public function scopeLimited($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_LIMIT)->where('limit', '>', 0);
     }
 
     public function scopeUnlimited($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_LIMIT)->where('limit', '=', 0);
     }
 
     public function scopeFeature($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_FEATURE);
     }
 

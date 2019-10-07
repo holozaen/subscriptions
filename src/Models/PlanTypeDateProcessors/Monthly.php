@@ -11,7 +11,7 @@ class Monthly extends AbstractPlanTypeDateProcessor
 
     public function getExpirationDate(): CarbonInterface
     {
-        $expirationDate = $this->expirationDate->addMonth();
-        return $expirationDate;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->expirationDate->addMonth();
     }
 }

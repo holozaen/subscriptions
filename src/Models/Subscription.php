@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 
 namespace OnlineVerkaufen\Subscriptions\Models;
@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Facades\DB;
 use OnlineVerkaufen\Subscriptions\Events\DispatchesSubscriptionEvents;
 use OnlineVerkaufen\Subscriptions\Events\FeatureConsumed;
 use OnlineVerkaufen\Subscriptions\Events\FeatureUnconsumed;
@@ -47,7 +46,10 @@ use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
  * @method static Builder expiring
  * @method static Builder paid
  * @method static Builder recurring
+ * @method static Builder regular
+ * @method static Builder testing
  * @method static Builder unpaid
+ * @method static Builder upcoming
  * @method static Builder withinPaymentTolerance
  */
 
@@ -96,15 +98,19 @@ class Subscription extends Model
 
     public function scopeActive($query): Builder //regular or testing
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where(
             static function($query) {
+                /** @noinspection PhpUndefinedMethodInspection */
                 return $query->where('starts_at','<=', Carbon::now()) // is started
                 ->where(static function($query) {
+                    /** @noinspection PhpUndefinedMethodInspection */
                     return $query->whereNotNull('paid_at')
                         ->orWhere('payment_tolerance_ends_at', '>', Carbon::now());
                 }) // is paid or whithin payment tolerance
                 ->where('expires_at' ,'>=',  Carbon::now()) // has not expired
                 ->where(static function($query) {  // is not cancelled
+                    /** @noinspection PhpUndefinedMethodInspection */
                     return $query->whereNull('cancelled_at')
                         ->orWhere('cancelled_at', '>', Carbon::now()); // not cancelled
                 })
@@ -112,19 +118,23 @@ class Subscription extends Model
             }
         )
             ->orWhere(static function ($query) {
+                /** @noinspection PhpUndefinedMethodInspection */
                 return $query->whereNotNull('test_ends_at')->where('test_ends_at','>', Carbon::now());
             });
     }
 
     public function scopeRegular($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('starts_at','<=', Carbon::now()) // is started
         ->where(static function($query) {
+            /** @noinspection PhpUndefinedMethodInspection */
             return $query->whereNotNull('paid_at')
                 ->orWhere('payment_tolerance_ends_at', '>', Carbon::now());
         }) // is paid or whithin payment tolerance
         ->where('expires_at' ,'>=',  Carbon::now()) // has not expired
         ->where(static function($query) {  // is not cancelled
+            /** @noinspection PhpUndefinedMethodInspection */
             return $query->whereNull('cancelled_at')
                 ->orWhere('cancelled_at', '>', Carbon::now()); // not cancelled
         })
@@ -133,37 +143,44 @@ class Subscription extends Model
 
     public function scopeTesting($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->whereNotNull('test_ends_at')->where('test_ends_at','>', Carbon::now());
     }
 
     public function scopePaid($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->whereNotNull('paid_at');
     }
 
     public function scopeRecurring($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('is_recurring', 1);
     }
 
     public function scopeUnpaid($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->whereNull('paid_at');
     }
 
     public function scopeExpiring($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('expires_at', '>', Carbon::tomorrow()->endOfDay()->subSecond())
             ->where('expires_at', '<=', Carbon::tomorrow()->endOfDay()->addSecond());
     }
 
     public function scopeUpcoming($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('starts_at', '>', Carbon::now());
     }
 
     public function scopeWithinPaymentTolerance($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('payment_tolerance_ends_at', '>', Carbon::now());
     }
 
@@ -241,7 +258,7 @@ class Subscription extends Model
             !$this->isRefunded());
     }
 
-    public function getIsActiveAttribute()
+    public function getIsActiveAttribute(): bool
     {
        return $this->isActive();
     }
@@ -271,7 +288,12 @@ class Subscription extends Model
         return $this;
     }
 
-    public function cancel($immediate = false): self
+    /**
+     * @param bool $immediate
+     * @return Subscription
+     * @throws SubscriptionException
+     */
+    public function cancel(bool $immediate = false): self
     {
         if ($this->isCancelled()) {
             throw new SubscriptionException('subscription is already cancelled or pending cancellation');
@@ -292,6 +314,12 @@ class Subscription extends Model
         return $this;
     }
 
+    /**
+     * @param string $featureCode
+     * @param int $amount
+     * @throws FeatureException
+     * @throws FeatureNotFoundException
+     */
     public function consumeFeature(string $featureCode, int $amount): void
     {
         /** @var Usage $usage */
@@ -310,6 +338,12 @@ class Subscription extends Model
         event(new FeatureConsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode)));
     }
 
+    /**
+     * @param string $featureCode
+     * @param int $amount
+     * @throws FeatureException
+     * @throws FeatureNotFoundException
+     */
     public function unconsumeFeature(string $featureCode, int $amount): void
     {
         $usage = $this->usageModelOf($featureCode);
@@ -323,17 +357,12 @@ class Subscription extends Model
     /**
      * @param string $featureCode
      * @return int
-     * @throws FeatureNotFoundException
      */
     public function getUsageOf(string $featureCode): int
     {
         /** @var Usage $usage */
-        $usage = $this->usages()->code($featureCode)->first();
-
-        /** @var Feature $feature */
-        $feature = $this->getFeatureByCode($featureCode);
-
-        return $usage->used;
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $this->usages()->code($featureCode)->first()->used;
     }
 
     /**
@@ -361,7 +390,6 @@ class Subscription extends Model
     /**
      * @param string $featureCode
      * @return Usage
-     * @throws FeatureException
      */
     private function createEmptyUsage(string $featureCode): Usage
     {
@@ -384,6 +412,7 @@ class Subscription extends Model
      */
     private function usageModelOf(string $featureCode): Usage
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         $usage = $this->usages()->code($featureCode)->first();
 
         if (!$usage) {
@@ -407,6 +436,7 @@ class Subscription extends Model
     private function getFeatureByCode(string $featureCode): Feature
     {
         /** @var Feature $feature */
+        /** @noinspection PhpUndefinedMethodInspection */
         $feature = $this->features()->code($featureCode)->first();
         if (!is_a ($feature, Feature::class)) {
             throw new FeatureNotFoundException(sprintf('No feature found with code %s', $featureCode));

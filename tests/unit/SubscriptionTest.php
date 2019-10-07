@@ -132,9 +132,9 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function can_get_regular_subscriptions(): void
     {
-        $testingSubscriptionA = factory(Subscription::class)->states(['testing'])->create();
-        $testingSubscriptionB = factory(Subscription::class)->states(['testing'])->create();
-        $activeSubscriptionC = factory(Subscription::class)->states(['unpaid'])->create();
+        factory(Subscription::class)->states(['testing'])->create();
+        factory(Subscription::class)->states(['testing'])->create();
+        factory(Subscription::class)->states(['unpaid'])->create();
         $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create();
         $this->assertCount(1, Subscription::regular()->get());
         $this->assertTrue($activeSubscriptionD->is(Subscription::regular()->get()[0]));
@@ -146,10 +146,10 @@ class SubscriptionTest extends TestCase
         $expiringSubscriptionA = factory(Subscription::class)->states(['expiring'])->create();
         $expiringSubscriptionB = factory(Subscription::class)->states(['expiring'])->create();
         $activeSubscriptionC = factory(Subscription::class)->states(['active'])->create([
-            'expires_at' => Carbon::tomorrow()->endOfDay()->subSecond(2)
+            'expires_at' => Carbon::tomorrow()->endOfDay()->subSeconds(2)
         ]);
         $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create([
-            'expires_at' => Carbon::tomorrow()->endOfDay()->addSecond(2)
+            'expires_at' => Carbon::tomorrow()->endOfDay()->addSeconds(2)
         ]);
         $this->assertCount(2, Subscription::expiring()->get());
         $this->assertTrue($expiringSubscriptionA->is(Subscription::expiring()->get()[0]));
@@ -200,14 +200,17 @@ class SubscriptionTest extends TestCase
 
         try {
             $subscription->remaining_days;
-        } catch (SubscriptionException $e) {
+        } /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (SubscriptionException $e) {
             return;
         }
 
         $this->fail('expected a SubscriptionException');
     }
 
-    /** @test */
+    /** @test
+     * @throws SubscriptionException
+     */
     public function can_cancel_immediately(): void
     {
         /** @var Subscription $subscription */
@@ -218,7 +221,9 @@ class SubscriptionTest extends TestCase
         $this->assertTrue($subscription->isCancelled());
     }
 
-    /** @test */
+    /** @test
+     * @throws SubscriptionException
+     */
     public function can_cancel_at_the_end_of_the_subscription(): void
     {
         /** @var Subscription $subscription */
@@ -226,6 +231,7 @@ class SubscriptionTest extends TestCase
             'expires_at' => Carbon::parse('+ 1 week')
         ]);
         $this->assertTrue($subscription->isActive());
+        /** @noinspection ArgumentEqualsDefaultValueInspection */
         $subscription->cancel(false);
         $this->assertEquals($subscription->expires_at, $subscription->cancelled_at);
         $this->assertTrue($subscription->isActive());
@@ -248,11 +254,14 @@ class SubscriptionTest extends TestCase
         $this->fail('expected SubscriptionException');
     }
 
-    /** @test */
+    /** @test
+     * @throws SubscriptionException
+     */
     public function can_still_cancel_a_subscription_that_is_pending_cancellation(): void
     {
         /** @var Subscription $subscription */
         $subscription = factory(Subscription::class)->states('active')->create();
+        /** @noinspection ArgumentEqualsDefaultValueInspection */
         $subscription->cancel(false);
 
         $this->assertTrue($subscription->isPendingCancellation());

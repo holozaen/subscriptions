@@ -4,7 +4,6 @@ namespace OnlineVerkaufen\Subscriptions\Test;
 
 use OnlineVerkaufen\Subscriptions\SubscriptionServiceProvider;
 use OnlineVerkaufen\Subscriptions\Test\Models\User as TestUser;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
 use OnlineVerkaufen\Subscriptions\Models\Plan;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
@@ -27,14 +26,14 @@ abstract class TestCase extends OrchestraTestCase
         $this->artisan('migrate', ['--database' => 'sqlite']);
     }
 
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             SubscriptionServiceProvider::class,
         ];
     }
 
-    public function getEnvironmentSetUp($app)
+    public function getEnvironmentSetUp($app): void
     {
         $app['config']->set('auth.providers.users.model', TestUser::class);
         $app['config']->set('app.key', 'jklafsdhigbmbfk895hkjhgfkmnbg');

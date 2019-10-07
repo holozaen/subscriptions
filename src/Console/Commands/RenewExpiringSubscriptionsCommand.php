@@ -20,8 +20,10 @@ class RenewExpiringSubscriptionsCommand extends Command
         $this->info('renew recurring subscriptions expiring tomorrow night...');
 
         /** @var Subscription $subscription */
+        /** @noinspection PhpUndefinedMethodInspection */
         foreach(Subscription::expiring()->recurring()->cursor() as $subscription)
         {
+            /** @noinspection PhpUndefinedMethodInspection */
             $subscription->model->renewExpiringSubscription();
             /** @noinspection DisconnectedForeachInstructionInspection */
             $this->output->write('.');

@@ -17,6 +17,7 @@ use OnlineVerkaufen\Subscriptions\Models\Subscription;
  *
  * @property Feature feature
  * @property Subscription subscription
+ * @method static first()
  */
 
 class Usage extends Model
@@ -32,8 +33,10 @@ class Usage extends Model
         return $this->belongsTo(config('subscriptions.models.subscription'), 'subscription_id');
     }
 
+    /** @noinspection PhpUnused */
     public function scopeCode($query, string $code): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('code', $code);
     }
 

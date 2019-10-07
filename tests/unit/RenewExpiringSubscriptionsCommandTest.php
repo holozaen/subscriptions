@@ -2,11 +2,7 @@
 
 namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
-
-use Carbon\Carbon;
-use Mockery;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
-use OnlineVerkaufen\Subscriptions\Test\Models\TestDummy\User as TestUser;
 use OnlineVerkaufen\Subscriptions\Test\Models\User;
 use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
@@ -20,19 +16,19 @@ class RenewExpiringSubscriptionsCommandTest extends TestCase
         $userB = factory(User::class)->create();
         $userC = factory(User::class)->create();
 
-        $expiringSubscriptionA = factory(Subscription::class)
+        factory(Subscription::class)
             ->states(['expiring', 'recurring'])
             ->create([
                 'model_type' => User::class,
                 'model_id' => $userA->id,
             ]);
-        $nonExpiringSubscriptionB = factory(Subscription::class)
+        factory(Subscription::class)
             ->states('active')
             ->create([
                 'model_type' => User::class,
                 'model_id' => $userB->id
             ]);
-        $expiringSubscriptionC = factory(Subscription::class)
+        factory(Subscription::class)
             ->states(['expiring', 'recurring'])
             ->create([
                 'model_type' => User::class,
@@ -43,6 +39,5 @@ class RenewExpiringSubscriptionsCommandTest extends TestCase
             ->expectsOutput('.')
             ->expectsOutput('.')
             ->assertExitCode(0);
-
     }
 }

@@ -4,11 +4,8 @@ namespace OnlineVerkaufen\Subscriptions\Test\feature;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
-use OnlineVerkaufen\Subscriptions\Events\NewSubscription;
-use OnlineVerkaufen\Subscriptions\Events\SubscriptionRenewed;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionExtended;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionMigrated;
-use OnlineVerkaufen\Subscriptions\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\Plan;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
@@ -38,7 +35,9 @@ class ExtendSubscriptionTest extends TestCase
         $this->plan = factory(Plan::class)->states(['active', 'yearly'])->create();
     }
 
-    /** @test * */
+    /** @test *
+     * @throws SubscriptionException
+     */
     public function can_extend_an_existing_subscription(): void
     {
         $activeSubscription = factory(Subscription::class)->states('active')->create([
@@ -51,14 +50,17 @@ class ExtendSubscriptionTest extends TestCase
 
         $subscription = $this->user->activeSubscription();
         $this->assertTrue($subscription->is($activeSubscription));
+        /** @noinspection PhpUndefinedMethodInspection */
+        /** @noinspection ArgumentEqualsDefaultValueInspection */
         $this->assertEqualsWithDelta(Carbon::now()->addWeeks(1)->addDays(10)->endOfDay(), $subscription->expires_at, 1);
+        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionExtended::class);
     }
 
     /** @test * */
     public function can_only_extend_active_subscriptions(): void
     {
-        $expiredSubscription = factory(Subscription::class)->states('expired')->create([
+        factory(Subscription::class)->states('expired')->create([
             'model_type' => User::class,
             'model_id' => $this->user->id,
             'expires_at' => Carbon::yesterday()
@@ -70,6 +72,7 @@ class ExtendSubscriptionTest extends TestCase
             $this->user->extendSubscription(10);
         } catch (SubscriptionException $e) {
             $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->activeOrLastSubscription()->expires_at, 1);
+            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionExtended::class);
             return;
         }
@@ -77,7 +80,9 @@ class ExtendSubscriptionTest extends TestCase
         $this->fail();
     }
 
-    /** @test * */
+    /** @test *
+     * @throws SubscriptionException
+     */
     public function can_extend_an_existing_subscription_to_a_certain_date(): void
     {
         $activeSubscription = factory(Subscription::class)->states('active')->create([
@@ -90,14 +95,16 @@ class ExtendSubscriptionTest extends TestCase
 
         $subscription = $this->user->activeSubscription();
         $this->assertTrue($subscription->is($activeSubscription));
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEqualsWithDelta(Carbon::now()->addWeeks(2)->endOfDay(), $subscription->expires_at, 1);
+        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionExtended::class);
     }
 
     /** @test * */
     public function can_only_extend_active_subscriptions_to_a_certain_date(): void
     {
-        $expiredSubscription = factory(Subscription::class)->states('expired')->create([
+        factory(Subscription::class)->states('expired')->create([
             'model_type' => User::class,
             'model_id' => $this->user->id,
             'expires_at' => Carbon::yesterday()
@@ -109,6 +116,7 @@ class ExtendSubscriptionTest extends TestCase
             $this->user->extendSubscriptionTo(Carbon::parse('+ 2 weeks'));
         } catch (SubscriptionException $e) {
             $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->activeOrLastSubscription()->expires_at, 1);
+            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionExtended::class);
             return;
         }
@@ -117,17 +125,19 @@ class ExtendSubscriptionTest extends TestCase
     }
 
 
-
-    /** @test * */
+    /** @test *
+     * @throws SubscriptionException
+     */
     public function can_migrate_a_yearly_plan_to_a_monthly_plan_on_the_expiry_date(): void
     {
-        $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
+        $oldSubscription = $this->user->subscribeTo($this->plan, false);
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         sleep(1);
 
         $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        /** @noinspection ArgumentEqualsDefaultValueInspection */
         $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
         $newSubscription->markAsPaid();
 
@@ -138,28 +148,34 @@ class ExtendSubscriptionTest extends TestCase
         $this->assertEqualsWithDelta($activeSubscription->expires_at, $latestSubscription->starts_at, 1);
     }
 
-    /** @test * */
+    /** @test *
+     * @throws SubscriptionException
+     */
     public function can_migrate_a_yearly_plan_to_a_non_recurring_plan_with_set_duration(): void
     {
-        $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
+        $oldSubscription = $this->user->subscribeTo($this->plan, false);
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
         $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
+        /** @noinspection ArgumentEqualsDefaultValueInspection */
         $newSubscription = $this->user->migrateSubscriptionTo($durationPlan, false, true, 30);
         $newSubscription->markAsPaid();
 
         $activeSubscription = $this->user->activeSubscription();
         $this->assertTrue($activeSubscription->is($newSubscription));
+        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionMigrated::class);
     }
 
-    /** @test * */
+    /** @test *
+     * @throws SubscriptionException
+     */
     public function can_not_migrate_a_yearly_plan_to_a_non_recurring_plan_with_zero_duration(): void
     {
-        $oldSubscription = $this->user->subscribeTo($this->plan, false, 0);
+        $oldSubscription = $this->user->subscribeTo($this->plan, false);
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->activeSubscription();
         $this->assertEquals('yearly', $activeSubscription->plan->type);
@@ -167,9 +183,10 @@ class ExtendSubscriptionTest extends TestCase
         Event::fake();
 
         try{
-            $newSubscription = $this->user->migrateSubscriptionTo($durationPlan, false, true, 0);
+            $this->user->migrateSubscriptionTo($durationPlan, false, true, 0);
         } catch (SubscriptionException $e) {
             $this->assertTrue($activeSubscription->is($oldSubscription));
+            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionMigrated::class);
             return;
         }
@@ -177,22 +194,26 @@ class ExtendSubscriptionTest extends TestCase
         $this->fail('Expected SubscriptionException');
     }
 
-    /** @test * */
+    /** @test *
+     * @throws SubscriptionException
+     */
     public function cannot_migrate_a_testing_subscription_on_the_expiry_date(): void
     {
-        $oldSubscription = $this->user->subscribeTo($this->plan, false, 30);
+        $this->user->subscribeTo($this->plan, false, 30);
         $activeSubscription = $this->user->activeSubscription();
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
         $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
         try {
+            /** @noinspection ArgumentEqualsDefaultValueInspection */
             $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
             $newSubscription->markAsPaid();
 
         } catch (SubscriptionException $e) {
             $activeSubscription = $this->user->activeSubscription();
             $this->assertTrue($activeSubscription->is($activeSubscription));
+            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionMigrated::class);
             return;
         }

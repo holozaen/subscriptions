@@ -5,6 +5,9 @@ namespace OnlineVerkaufen\Subscriptions\Test\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use OnlineVerkaufen\Subscriptions\Models\HasPlans;
 
+/**
+ * @property mixed id
+ */
 class User extends Authenticatable
 {
     use HasPlans;

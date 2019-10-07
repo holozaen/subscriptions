@@ -5,10 +5,10 @@ use OnlineVerkaufen\Subscriptions\Models\Plan;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
 use OnlineVerkaufen\Subscriptions\Test\Models\User;
 
-$factory->define(Subscription::class, function (\Faker\Generator $faker) {
+$factory->define(Subscription::class, static function (\Faker\Generator $faker) {
     return [
-        'plan_id' => function() { return factory(Plan::class)->create()->id;},
-        'model_id' => function() { return factory(User::class)->create()->id;},
+        'plan_id' => static function() { return factory(Plan::class)->create()->id;},
+        'model_id' => static function() { return factory(User::class)->create()->id;},
         'model_type' => User::class,
         'price' => $faker->randomElement([9900,29900,59900]),
         'currency' => 'CHF',
@@ -16,19 +16,19 @@ $factory->define(Subscription::class, function (\Faker\Generator $faker) {
     ];
 });
 
-$factory->state(Subscription::class, 'paid', function() {
+$factory->state(Subscription::class, 'paid', static function() {
     return [
         'paid_at' => Carbon::now()
     ];
 });
 
-$factory->state(Subscription::class, 'unpaid', function() {
+$factory->state(Subscription::class, 'unpaid', static function() {
     return [
         'paid_at' => null
     ];
 });
 
-$factory->state(Subscription::class, 'tolerance', function() {
+$factory->state(Subscription::class, 'tolerance', static function() {
     return [
         'starts_at' => Carbon::parse('-10 days'),
         'expires_at' => Carbon::parse('+10 days'),
@@ -37,19 +37,19 @@ $factory->state(Subscription::class, 'tolerance', function() {
     ];
 });
 
-$factory->state(Subscription::class, 'recurring', function() {
+$factory->state(Subscription::class, 'recurring', static function() {
     return [
         'is_recurring' => true
     ];
 });
 
-$factory->state(Subscription::class, 'nonrecurring', function() {
+$factory->state(Subscription::class, 'nonrecurring', static function() {
     return [
         'is_recurring' => false
     ];
 });
 
-$factory->state(Subscription::class, 'active', function() {
+$factory->state(Subscription::class, 'active', static function() {
     return [
         'starts_at' => Carbon::parse('-10 days'),
         'expires_at' => Carbon::parse('+10 days'),
@@ -57,14 +57,14 @@ $factory->state(Subscription::class, 'active', function() {
         'payment_tolerance_ends_at' => Carbon::yesterday()
     ];
 });
-$factory->state(Subscription::class, 'testing', function() {
+$factory->state(Subscription::class, 'testing', static function() {
     return [
         'test_ends_at' => Carbon::parse('+10 days'),
         'starts_at' => Carbon::parse('+10 days'),
         'expires_at' => Carbon::parse('+20 days'),
   ];
 });
-$factory->state(Subscription::class, 'expiring', function() {
+$factory->state(Subscription::class, 'expiring', static function() {
     return [
         'paid_at' => Carbon::parse('-40 days'),
         'starts_at' => Carbon::parse('-30 days'),
@@ -72,7 +72,7 @@ $factory->state(Subscription::class, 'expiring', function() {
     ];
 });
 
-$factory->state(Subscription::class, 'expired', function() {
+$factory->state(Subscription::class, 'expired', static function() {
     return [
         'paid_at' => Carbon::parse('-40 days'),
         'starts_at' => Carbon::parse('-30 days'),
@@ -80,20 +80,20 @@ $factory->state(Subscription::class, 'expired', function() {
         'payment_tolerance_ends_at' => Carbon::parse('-30 days')
     ];
 });
-$factory->state(Subscription::class, 'upcoming', function() {
+$factory->state(Subscription::class, 'upcoming', static function() {
     return [
         'starts_at' => Carbon::parse('+10 days'),
         'expires_at' => Carbon::parse('+20 days')
     ];
 });
-$factory->state(Subscription::class, 'cancelled', function() {
+$factory->state(Subscription::class, 'cancelled', static function() {
     return [
         'starts_at' => Carbon::parse('-30 days'),
         'expires_at' => Carbon::parse('+30 days'),
         'cancelled_at' => Carbon::parse('-1 days')
     ];
 });
-$factory->state(Subscription::class, 'refunded', function() {
+$factory->state(Subscription::class, 'refunded', static function() {
     return [
         'starts_at' => Carbon::parse('-30 days'),
         'expires_at' => Carbon::parse('+30 days'),

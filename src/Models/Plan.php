@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 
 namespace OnlineVerkaufen\Subscriptions\Models;
@@ -7,7 +7,6 @@ namespace OnlineVerkaufen\Subscriptions\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use OnlineVerkaufen\Subscriptions\Exception\PlanException;
 use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Duration;
 use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Monthly;
 use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Yearly;
@@ -58,11 +57,13 @@ class Plan extends Model
 
     public function scopeActive($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('state', $this::STATE_ACTIVE);
     }
 
     public function scopeDisabled($query): Builder
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('state', $this::STATE_DISABLED);
     }
 

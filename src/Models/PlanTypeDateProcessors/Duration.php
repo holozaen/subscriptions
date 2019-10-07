@@ -20,11 +20,16 @@ class Duration extends AbstractPlanTypeDateProcessor
         parent::__construct($testingDays,$startAt);
     }
 
+    /**
+     * @return CarbonInterface
+     * @throws SubscriptionException
+     */
     public function getExpirationDate(): CarbonInterface
     {
         if ($this->duration < 1) {
             throw new SubscriptionException('duration must be a positive integer');
         }
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->expirationDate->addDays($this->duration);
     }
 }

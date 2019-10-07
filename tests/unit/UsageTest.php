@@ -3,6 +3,9 @@
 namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
+use OnlineVerkaufen\Subscriptions\Exception\FeatureException;
+use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
+use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
 use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
 use OnlineVerkaufen\Subscriptions\Models\Plan;
@@ -25,6 +28,7 @@ class UsageTest extends TestCase
     /** @var Feature */
     private $feature;
 
+    /** @throws SubscriptionException */
     public function setUp(): void
     {
         parent::setUp();
@@ -39,7 +43,11 @@ class UsageTest extends TestCase
         $this->subscription = $this->user->subscribeTo($this->plan, true, false,10);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @throws FeatureNotFoundException
+     * @throws FeatureException
+     */
     public function can_get_the_corresponding_subscription(): void
     {
         $this->subscription->consumeFeature('feature.limited', 5);

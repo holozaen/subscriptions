@@ -6,9 +6,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
 use OnlineVerkaufen\Subscriptions\Events\NewSubscription;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionRenewed;
-use OnlineVerkaufen\Subscriptions\Events\SubscriptionExtended;
-use OnlineVerkaufen\Subscriptions\Events\SubscriptionMigrated;
-use OnlineVerkaufen\Subscriptions\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\Plan;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
@@ -38,7 +35,9 @@ class RenewExpiredSubscriptionTest extends TestCase
         $this->plan = factory(Plan::class)->states(['active', 'yearly'])->create();
     }
 
-    /** @test * */
+    /** @test *
+     * @throws SubscriptionException
+     */
     public function can_renew_the_last_expired_subscription(): void
     {
         factory(Subscription::class)->states('expired')->create([
@@ -51,8 +50,11 @@ class RenewExpiredSubscriptionTest extends TestCase
 
         $subscription = $this->user->activeSubscription();
         $this->assertEquals('yearly', $subscription->plan->type);
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEqualsWithDelta(Carbon::now()->addYear()->endOfDay(), $subscription->expires_at, 1);
+        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionRenewed::class);
+        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertNotDispatched(NewSubscription::class);
     }
 
@@ -71,6 +73,7 @@ class RenewExpiredSubscriptionTest extends TestCase
             $this->user->renewExpiredSubscription(true);
         } catch (SubscriptionException $e) {
             $this->assertTrue($this->user->activeOrLastSubscription()->is($expiredSubscription));
+            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;
         }
@@ -86,6 +89,7 @@ class RenewExpiredSubscriptionTest extends TestCase
         try {
             $this->user->renewExpiredSubscription(true);
         } catch (SubscriptionException $e) {
+            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;
         }
