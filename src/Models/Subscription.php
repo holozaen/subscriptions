@@ -39,6 +39,7 @@ use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
  * @property mixed renewed_at
  * @property mixed created_at
  * @property array usage_stats
+ * @property array feature_authorizations
  * @property int remaining_days
  *
  * @property Plan plan
@@ -488,5 +489,16 @@ class Subscription extends Model
         }
 
         return $usageStats;
+    }
+
+    public function getFeatureAuthorizationsAttribute(): array
+    {
+        $authorizations = [];
+        /** @noinspection PhpUndefinedMethodInspection */
+        foreach ($this->features()->feature()->get() as $feature) {
+            $authorizations[] = $feature->code;
+        }
+
+        return $authorizations;
     }
 }
