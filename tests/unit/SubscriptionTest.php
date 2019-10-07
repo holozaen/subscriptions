@@ -363,7 +363,7 @@ class SubscriptionTest extends TestCase
                 'type' => 'unlimited',
                 'usage' => 0,
             ]
-        ], $subscription->usageStats);
+        ], $subscription->feature_usage_stats);
     }
 
     /** @test */
