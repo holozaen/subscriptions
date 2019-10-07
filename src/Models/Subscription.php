@@ -38,9 +38,11 @@ use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
  * @property mixed refunded_at
  * @property mixed renewed_at
  * @property mixed created_at
+ * @property array usage_stats
+ * @property int remaining_days
  *
  * @property Plan plan
- * @property int remaining_days
+ * @property HasMany features
  *
  * @method static Builder active
  * @method static Builder expiring
@@ -357,12 +359,15 @@ class Subscription extends Model
     /**
      * @param string $featureCode
      * @return int
+     * @throws FeatureException
+     * @throws FeatureNotFoundException
      */
     public function getUsageOf(string $featureCode): int
     {
+        $usage = $this->usageModelOf($featureCode);
         /** @var Usage $usage */
         /** @noinspection PhpUndefinedMethodInspection */
-        return $this->usages()->code($featureCode)->first()->used;
+        return $usage->used;
     }
 
     /**
@@ -454,5 +459,34 @@ class Subscription extends Model
     public function hasAvailable(string $featureCode, int $amount): bool
     {
         return $this->getUsageOf($featureCode) + $amount < $this->getRemainingOf($featureCode);
+    }
+
+    /** @throws FeatureNotFoundException
+     * @throws FeatureException
+     */
+    public function getUsageStatsAttribute(): array
+    {
+        $usageStats = [];
+        /** @var Feature\ $feature */
+        /** @noinspection PhpUndefinedMethodInspection */
+        foreach ($this->features()->limited()->get() as $feature) {
+            $usageStats[] = [
+                'code' => $feature->code,
+                'type' => 'limited',
+                'usage' => $this->getUsageOf($feature->code),
+                'remaining' => $this->getRemainingOf($feature->code),
+            ];
+        }
+
+        /** @noinspection PhpUndefinedMethodInspection */
+        foreach ($this->features()->unlimited()->get() as $feature) {
+            $usageStats[] = [
+                'code' => $feature->code,
+                'type' => 'unlimited',
+                'usage' => $this->getUsageOf($feature->code),
+            ];
+        }
+
+        return $usageStats;
     }
 }

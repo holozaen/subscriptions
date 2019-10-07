@@ -4,6 +4,7 @@ namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use OnlineVerkaufen\Subscriptions\Models\Feature;
+use OnlineVerkaufen\Subscriptions\Models\Plan;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
 use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
@@ -15,8 +16,8 @@ class FeatureTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->subscription = factory(Subscription::class)->states(['active'])->create();
-        $this->subscription->features()->saveMany([
+        $plan = factory(Plan::class)->create();
+        $plan->features()->saveMany([
             new Feature([
                 'name' => 'Limited feature',
                 'code' => 'feature.limited',
@@ -38,6 +39,7 @@ class FeatureTest extends TestCase
                 'limit' => 0,
             ]),
         ]);
+        $this->subscription = factory(Subscription::class)->states(['active'])->create(['plan_id' => $plan->id]);
     }
 
     /** @test */
