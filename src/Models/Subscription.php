@@ -38,7 +38,7 @@ use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
  * @property mixed refunded_at
  * @property mixed renewed_at
  * @property mixed created_at
- * @property array usage_stats
+ * @property array feature_usage_stats
  * @property array feature_authorizations
  * @property int remaining_days
  *
@@ -465,7 +465,7 @@ class Subscription extends Model
     /** @throws FeatureNotFoundException
      * @throws FeatureException
      */
-    public function getUsageStatsAttribute(): array
+    public function getFeatureUsageStatsAttribute(): array
     {
         $usageStats = [];
         /** @var Feature\ $feature */
