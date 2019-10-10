@@ -16,19 +16,24 @@ class FeatureConsumed
     public $feature;
     public $used;
     public $remaining;
+    public $model_type;
+    public $model_id;
 
     /**
      * @param Subscription $subscription Subscription on which action was done.
      * @param Feature $feature The feature that was consumed.
      * @param int $used The amount used on this consumption.
      * @param int $remaining The amount remaining for this feature.
-     * @return void
+     * @param string|null $model_type
+     * @param int|null $model_id
      */
-    public function __construct($subscription, $feature, int $used, int $remaining)
+    public function __construct($subscription, $feature, int $used, int $remaining, ?string $model_type, ?int $model_id)
     {
         $this->subscription = $subscription;
         $this->feature = $feature;
         $this->used = $used;
         $this->remaining = $remaining;
-    }
+        $this->model_type = $model_type;
+        $this->model_id = $model_id;
+     }
 }

@@ -78,6 +78,8 @@ class Plan extends Migration
         Schema::create('plan_feature_usages', static function (Blueprint $table) {
             $table->increments('id');
             $table->string('code');
+            $table->string('model_type')->nullable();
+            $table->integer('model_id')->nullable();
             $table->integer('subscription_id');
             $table->unsignedBigInteger('used')->default(0);
 

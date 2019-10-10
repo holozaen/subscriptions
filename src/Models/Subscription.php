@@ -320,52 +320,58 @@ class Subscription extends Model
     /**
      * @param string $featureCode
      * @param int $amount
+     * @param string|null $model_type
+     * @param int|null $model_id
      * @throws FeatureException
      * @throws FeatureNotFoundException
      */
-    public function consumeFeature(string $featureCode, int $amount): void
+    public function consumeFeature(string $featureCode, int $amount, ?string $model_type = null, ?int $model_id = null): void
     {
         /** @var Usage $usage */
-        $usage = $this->usageModelOf($featureCode);
+        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
 
-        if (!$this->hasAvailable($featureCode,$amount)) {
+        if (!$this->hasAvailable($featureCode,$amount, $model_type, $model_id)) {
             throw new FeatureException(
                 sprintf('Your usage exceeds the allowed usage amount. You tried to use %s, remaining were only %s',
                     $amount,
-                    $this->getRemainingOf($featureCode)
+                    $this->getRemainingOf($featureCode, $model_type, $model_id)
                 )
             );
         }
 
         $usage->increaseBy($amount);
-        event(new FeatureConsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode)));
+        event(new FeatureConsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode, $model_type, $model_id), $model_type, $model_id));
     }
 
     /**
      * @param string $featureCode
      * @param int $amount
+     * @param string|null $model_type
+     * @param int|null $model_id
      * @throws FeatureException
      * @throws FeatureNotFoundException
      */
-    public function unconsumeFeature(string $featureCode, int $amount): void
+    public function unconsumeFeature(string $featureCode, int $amount, ?string $model_type = null, ?int $model_id = null): void
     {
-        $usage = $this->usageModelOf($featureCode);
+        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
 
         $usage->decreaseBy($amount);
 
-        event(new FeatureUnconsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode)));
+        event(new FeatureUnconsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode, $model_type, $model_id), $model_type, $model_id));
     }
 
 
     /**
      * @param string $featureCode
+     * @param string|null $model_type
+     * @param int|null $model_id
      * @return int
      * @throws FeatureException
      * @throws FeatureNotFoundException
      */
-    public function getUsageOf(string $featureCode): int
+    public function getUsageOf(string $featureCode, ?string $model_type = null, ?int $model_id = null): int
     {
-        $usage = $this->usageModelOf($featureCode);
+        $usage = $this->usageModelOf($featureCode,$model_type, $model_id);
         /** @var Usage $usage */
         /** @noinspection PhpUndefinedMethodInspection */
         return $usage->used;
@@ -375,13 +381,15 @@ class Subscription extends Model
      * Get the amount remaining for a feature.
      *
      * @param string $featureCode The feature code. This feature has to be 'limit' type.
+     * @param string|null $model_type
+     * @param int|null $model_id
      * @return int The amount remaining.
      * @throws FeatureException
      * @throws FeatureNotFoundException
      */
-    public function getRemainingOf(string $featureCode): int
+    public function getRemainingOf(string $featureCode, ?string $model_type = null, ?int $model_id = null): int
     {
-        $usage = $this->usageModelOf($featureCode);
+        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
 
         /** @var Feature $feature */
         $feature = $this->getFeatureByCode($featureCode);
@@ -395,15 +403,19 @@ class Subscription extends Model
 
     /**
      * @param string $featureCode
+     * @param string|null $model_type
+     * @param int|null $model_id
      * @return Usage
      */
-    private function createEmptyUsage(string $featureCode): Usage
+    private function createEmptyUsage(string $featureCode, ?string $model_type, ?int $model_id): Usage
     {
         $usageModel = config('subscriptions.models.usage');
 
         /** @var Usage $usage */
         $usage = $this->usages()->save(new $usageModel([
             'code' => $featureCode,
+            'model_type' => $model_type,
+            'model_id' => $model_id,
             'used' => 0,
         ]));
 
@@ -412,14 +424,21 @@ class Subscription extends Model
 
     /**
      * @param string $featureCode
+     * @param string|null $model_type
+     * @param int|null $model_id
      * @return Usage
      * @throws FeatureException
      * @throws FeatureNotFoundException
      */
-    private function usageModelOf(string $featureCode): Usage
+    private function usageModelOf(string $featureCode, ?string $model_type, ?int $model_id): Usage
     {
-        /** @noinspection PhpUndefinedMethodInspection */
-        $usage = $this->usages()->code($featureCode)->first();
+        if (!$model_type) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $usage = $this->usages()->code($featureCode)->first();
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $usage = $this->usages()->code($featureCode)->where('model_type', $model_type)->where('model_id', $model_id)->first();
+        }
 
         if (!$usage) {
             /** @var Feature $feature */
@@ -428,7 +447,7 @@ class Subscription extends Model
             if ($feature->isFeatureType()) {
                 throw new FeatureException('This feature is not limited and thus can not be consumed');
             }
-            $usage = $this->createEmptyUsage($featureCode);
+            $usage = $this->createEmptyUsage($featureCode, $model_type, $model_id);
         }
 
         return $usage;
@@ -453,13 +472,15 @@ class Subscription extends Model
     /**
      * @param string $featureCode
      * @param int $amount
+     * @param string|null $model_type
+     * @param int|null $model_id
      * @return bool
      * @throws FeatureException
      * @throws FeatureNotFoundException
      */
-    public function hasAvailable(string $featureCode, int $amount): bool
+    public function hasAvailable(string $featureCode, int $amount, ?string $model_type, ?int $model_id): bool
     {
-        return $this->getUsageOf($featureCode) + $amount <= $this->getRemainingOf($featureCode);
+        return $this->getUsageOf($featureCode, $model_type, $model_id) + $amount <= $this->getRemainingOf($featureCode, $model_type, $model_id);
     }
 
     /** @throws FeatureNotFoundException
