@@ -483,10 +483,14 @@ class Subscription extends Model
         return $this->getUsageOf($featureCode, $model_type, $model_id) + $amount <= $this->getRemainingOf($featureCode, $model_type, $model_id);
     }
 
-    /** @throws FeatureNotFoundException
+    /**
+     * @param string|null $model_type
+     * @param int|null $model_id
+     * @return array
      * @throws FeatureException
+     * @throws FeatureNotFoundException
      */
-    public function getFeatureUsageStatsAttribute(): array
+    public function getFeatureUsageStatsAttribute(?string $model_type = null, ?int $model_id = null): array
     {
         $usageStats = [];
         /** @var Feature\ $feature */
@@ -495,8 +499,8 @@ class Subscription extends Model
             $usageStats[] = [
                 'code' => $feature->code,
                 'type' => 'limited',
-                'usage' => $this->getUsageOf($feature->code),
-                'remaining' => $this->getRemainingOf($feature->code),
+                'usage' => $this->getUsageOf($feature->code, $model_type, $model_id),
+                'remaining' => $this->getRemainingOf($feature->code, $model_type, $model_id),
             ];
         }
 
@@ -505,7 +509,7 @@ class Subscription extends Model
             $usageStats[] = [
                 'code' => $feature->code,
                 'type' => 'unlimited',
-                'usage' => $this->getUsageOf($feature->code),
+                'usage' => $this->getUsageOf($feature->code, $model_type, $model_id),
             ];
         }
 
