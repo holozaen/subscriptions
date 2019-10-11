@@ -484,13 +484,11 @@ class Subscription extends Model
     }
 
     /**
-     * @param string|null $model_type
-     * @param int|null $model_id
      * @return array
      * @throws FeatureException
      * @throws FeatureNotFoundException
      */
-    public function getFeatureUsageStatsAttribute(?string $model_type = null, ?int $model_id = null): array
+    public function getFeatureUsageStatsAttribute(): array
     {
         $usageStats = [];
         /** @var Feature\ $feature */
@@ -499,8 +497,8 @@ class Subscription extends Model
             $usageStats[] = [
                 'code' => $feature->code,
                 'type' => 'limited',
-                'usage' => $this->getUsageOf($feature->code, $model_type, $model_id),
-                'remaining' => $this->getRemainingOf($feature->code, $model_type, $model_id),
+                'usage' => $this->getUsageStatsOf($feature->code),
+                'remaining' => $this->getRemainingStatsOf($feature->code),
             ];
         }
 
@@ -509,7 +507,7 @@ class Subscription extends Model
             $usageStats[] = [
                 'code' => $feature->code,
                 'type' => 'unlimited',
-                'usage' => $this->getUsageOf($feature->code, $model_type, $model_id),
+                'usage' => $this->getUsageStatsOf($feature->code),
             ];
         }
 
@@ -525,5 +523,52 @@ class Subscription extends Model
         }
 
         return $authorizations;
+    }
+
+    /**
+     * @param $featureCode
+     * @return array|int
+     * @throws FeatureException
+     * @throws FeatureNotFoundException
+     */
+    private function getUsageStatsOf($featureCode)
+    {
+        /** @noinspection PhpUndefinedMethodInspection */
+        $usages = Usage::code($featureCode)->get();
+        if (count($usages) === 0) {
+            return $this->getUsageOf($featureCode);
+        }
+        if (count($usages) === 1 && $usages[0]->model_type === null) {
+            return $this->getUsageOf($featureCode);
+        }
+        $stats = [];
+        foreach ($usages as $usage) {
+            $stats[] = [
+                'model_type' =>  $usage->model_type,
+                'model_id' => $usage->model_id,
+                'usage' => $this->getUsageOf($featureCode, $usage->model_type, $usage->model_id),
+                'remaining' => $this->getRemainingOf($featureCode, $usage->model_type, $usage->model_id)
+            ];
+        }
+        return $stats;
+    }
+
+    /**
+     * @param $featureCode
+     * @return int|null
+     * @throws FeatureException
+     * @throws FeatureNotFoundException
+     */
+    private function getRemainingStatsOf($featureCode): ?int
+    {
+        /** @noinspection PhpUndefinedMethodInspection */
+        $usages = Usage::code($featureCode)->get();
+        if (count($usages) === 0) {
+            return $this->getRemainingOf($featureCode);
+        }
+        if (count($usages) === 1 && $usages[0]->model_type === null) {
+            return $this->getRemainingOf($featureCode);
+        }
+        return null;
     }
 }

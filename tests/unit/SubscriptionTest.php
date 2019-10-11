@@ -323,7 +323,11 @@ class SubscriptionTest extends TestCase
         $this->assertEquals(10, $subscription->getRemainingOf('feature.limited'));
     }
 
-    /** @test */
+    /**
+     * @test
+     * @throws FeatureException
+     * @throws FeatureNotFoundException
+     */
     public function it_know_its_feature_usage_stats(): void
     {
         $plan = factory(Plan::class)->create();
@@ -349,8 +353,16 @@ class SubscriptionTest extends TestCase
                 'type' => 'limit',
                 'limit' => 0,
             ]),
+            new Feature([
+                'name' => 'Limited feature',
+                'code' => 'feature.limited.scoped',
+                'description' => 'Some limited feature with model scope',
+                'type' => 'limit',
+                'limit' => 2,
+            ]),
         ]);
         $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
+        $subscription->consumeFeature('feature.limited.scoped', 1, 'some-model', 3);
         $this->assertEquals([
             [
                 'code' => 'feature.limited',
@@ -359,10 +371,23 @@ class SubscriptionTest extends TestCase
                 'remaining' => 10
             ],
             [
+                'code' => 'feature.limited.scoped',
+                'type' => 'limited',
+                'usage' => [
+                    [
+                        'model_type' => 'some-model',
+                        'model_id' => 3,
+                        'usage' => 1,
+                        'remaining' => 1
+                    ]
+                ],
+                'remaining' => null
+            ],
+            [
                 'code' => 'feature.unlimited',
                 'type' => 'unlimited',
                 'usage' => 0,
-            ]
+            ],
         ], $subscription->feature_usage_stats);
     }
 

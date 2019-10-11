@@ -110,8 +110,8 @@ class SubscribeTest extends TestCase
         $this->assertCount(1, $this->user->subscriptions);
         /** @var Subscription $subscription */
         $subscription = $this->user->activeSubscription();
-        $this->assertTrue($plan->is($subscription->plan));
         $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
+        $this->assertTrue($plan->is($subscription->plan));
         /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEqualsWithDelta(Carbon::now()->addDays(10)->endOfDay(), $subscription->expires_at, 1);
         $this->assertTrue($subscription->is_recurring);

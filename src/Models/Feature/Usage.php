@@ -18,6 +18,7 @@ use OnlineVerkaufen\Subscriptions\Models\Subscription;
  * @property Feature feature
  * @property Subscription subscription
  * @method static first()
+ * @method static code($featureCode)
  */
 
 class Usage extends Model
