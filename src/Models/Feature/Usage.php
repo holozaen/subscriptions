@@ -56,4 +56,12 @@ class Usage extends Model
                 'used' => ($this->used - $amount) > 0 ? ($this->used - $amount) : 0
             ]);
     }
+
+    public function reset(): void
+    {
+        $this->update(
+            [
+                'used' => 0
+            ]);
+    }
 }

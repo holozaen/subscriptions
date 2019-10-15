@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use OnlineVerkaufen\Subscriptions\Events\DispatchesSubscriptionEvents;
 use OnlineVerkaufen\Subscriptions\Events\FeatureConsumed;
 use OnlineVerkaufen\Subscriptions\Events\FeatureUnconsumed;
+use OnlineVerkaufen\Subscriptions\Events\FeatureUsageReset;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Subscriptions\Exception\FeatureException;
 use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
@@ -358,6 +359,22 @@ class Subscription extends Model
         $usage->decreaseBy($amount);
 
         event(new FeatureUnconsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode, $model_type, $model_id), $model_type, $model_id));
+    }
+
+    /**
+     * @param string $featureCode
+     * @param string|null $model_type
+     * @param int|null $model_id
+     * @throws FeatureException
+     * @throws FeatureNotFoundException
+     */
+    public function resetFeatureUsage(string $featureCode, ?string $model_type = null, ?int $model_id = null): void
+    {
+        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
+
+        $usage->reset();
+
+        event(new FeatureUsageReset($this, $this->getFeatureByCode($featureCode), $model_type, $model_id));
     }
 
 
