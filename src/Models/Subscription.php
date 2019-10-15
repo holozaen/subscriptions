@@ -480,7 +480,7 @@ class Subscription extends Model
      */
     public function hasAvailable(string $featureCode, int $amount, ?string $model_type, ?int $model_id): bool
     {
-        return $this->getUsageOf($featureCode, $model_type, $model_id) + $amount <= $this->getRemainingOf($featureCode, $model_type, $model_id);
+        return $amount <= $this->getRemainingOf($featureCode, $model_type, $model_id);
     }
 
     /**

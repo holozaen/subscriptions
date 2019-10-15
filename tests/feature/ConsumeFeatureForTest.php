@@ -63,9 +63,27 @@ class ConsumeFeatureForTest extends TestCase
         $this->subscription->consumeFeature('feature.limited', 1, 'some-type', 1);
         $this->assertEquals(2, $this->subscription->getUsageOf('feature.limited', 'some-type', 1));
         $this->assertEquals(8, $this->subscription->getRemainingOf('feature.limited', 'some-type', 1));
-        dd($this->subscription->feature_usage_stats);
     }
 
+    /**
+     * @test
+     * @throws FeatureNotFoundException
+     * @throws FeatureException
+     */
+    public function can_consume_a_limited_for_feature_up_to_the_last_item(): void
+    {
+        $this->withoutExceptionHandling();
+        $this->subscription->consumeFeature('feature.limited', 9, 'some-type', 1);
+        $this->assertEquals(9, $this->subscription->getUsageOf('feature.limited', 'some-type', 1));
+        $this->assertEquals(1, $this->subscription->getRemainingOf('feature.limited', 'some-type', 1));
+        Event::fake();
+        $this->subscription->consumeFeature('feature.limited', 1, 'some-type', 1);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $this->assertEquals(10, $this->subscription->getUsageOf('feature.limited', 'some-type', 1));
+        $this->assertEquals(0, $this->subscription->getRemainingOf('feature.limited', 'some-type', 1));
+        /** @noinspection PhpUndefinedMethodInspection */
+        Event::assertDispatched(FeatureConsumed::class);
+    }
      /**
      * @test
      * @throws FeatureNotFoundException
