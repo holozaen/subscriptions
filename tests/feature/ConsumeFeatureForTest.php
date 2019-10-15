@@ -59,6 +59,11 @@ class ConsumeFeatureForTest extends TestCase
         $this->assertEquals(9, $this->subscription->getRemainingOf('feature.limited', 'some-type', 1));
         /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(FeatureConsumed::class);
+
+        $this->subscription->consumeFeature('feature.limited', 1, 'some-type', 1);
+        $this->assertEquals(2, $this->subscription->getUsageOf('feature.limited', 'some-type', 1));
+        $this->assertEquals(8, $this->subscription->getRemainingOf('feature.limited', 'some-type', 1));
+        dd($this->subscription->feature_usage_stats);
     }
 
      /**
