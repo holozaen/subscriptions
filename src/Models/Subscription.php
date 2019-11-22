@@ -45,6 +45,15 @@ use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
  *
  * @property Plan plan
  * @property HasMany features
+ * @property boolean has_started
+ * @property boolean is_testing
+ * @property boolean is_paid
+ * @property boolean is_pending_cancellation
+ * @property boolean is_cancelled
+ * @property boolean is_renewed
+ * @property boolean is_active
+ * @property boolean is_refunded
+ * @property boolean is_within_payment_tolerance_time
  *
  * @method static Builder active
  * @method static Builder expiring
@@ -188,68 +197,118 @@ class Subscription extends Model
         return $query->where('payment_tolerance_ends_at', '>', Carbon::now());
     }
 
-    public function hasStarted(): bool
+    private function hasStarted(): bool
     {
         return Carbon::now()->greaterThanOrEqualTo(Carbon::parse($this->starts_at)->startOfDay());
     }
 
-    public function isTesting(): bool
+    public function getHasStartedAttribute(): bool
+    {
+        return $this->hasStarted();
+    }
+
+    private function isTesting(): bool
     {
         return (null !== $this->test_ends_at && Carbon::now()->lessThan(Carbon::parse($this->test_ends_at)));
     }
 
-    public function isUpcoming(): bool
+    public function getIsTestingAttribute(): bool
+    {
+        return $this->isTesting();
+    }
+
+    private function isUpcoming(): bool
     {
         return $this->starts_at > Carbon::now();
     }
 
-    public function isWithinPaymentToleranceTime(): bool
+    public function getIsUpcomingAttribute(): bool
+    {
+        return $this->isUpcoming();
+    }
+
+    private function isWithinPaymentToleranceTime(): bool
     {
         return (Carbon::now()->lessThan(Carbon::parse($this->payment_tolerance_ends_at)));
     }
 
-    public function isPaid(): bool
+    public function getIsWithinPaymentToleranceTimeAttribute(): bool
+    {
+        return $this->isWithinPaymentToleranceTime();
+    }
+
+    private function isPaid(): bool
     {
         return $this->paid_at !== null;
     }
 
-    public function isCancelled(): bool
+    public function getIsPaidAttribute(): bool
+    {
+       return $this->isPaid();
+    }
+
+    private function isCancelled(): bool
     {
         return ($this->cancelled_at !== null && $this->cancelled_at <= Carbon::now());
     }
 
-    public function isPendingCancellation(): bool
+    public function getIsCancelledAttribute(): bool
+    {
+        return $this->isCancelled();
+    }
+
+    private function isPendingCancellation(): bool
     {
         return ($this->cancelled_at !== null && $this->cancelled_at >= Carbon::now());
     }
 
-    public function isRecurring(): bool
+    public function getIsPendingCancellationAttribute(): bool
     {
-        return ($this->is_recurring === true);
+        return $this->isPendingCancellation();
     }
 
-    public function isRefunded(): bool
+    private function isRefunded(): bool
     {
         return ($this->refunded_at !== null);
     }
 
-    public function isRenewed(): bool
+    public function getIsRefundedAttribute(): bool
+    {
+        return $this->isRefunded();
+    }
+
+    private function isRenewed(): bool
     {
         return ($this->renewed_at !== null);
     }
 
-    public function isExpiring(): bool
+    public function getIsRenewedAttribute(): bool
+    {
+        return $this->isRenewed();
+    }
+
+    private function isExpiring(): bool
     {
         return ($this->expires_at > Carbon::tomorrow()->endOfDay()->subSecond() &&
             $this->expires_at < Carbon::tomorrow()->endOfDay()->addSecond());
     }
 
-    public function hasExpired(): bool
+    public function getIsExpiringAttribute(): bool
+    {
+        return $this->isExpiring();
+    }
+
+    private function hasExpired(): bool
     {
         return Carbon::now()->greaterThan(Carbon::parse($this->expires_at));
     }
 
-    public function isActive(): bool
+    public function getHasExpiredAttribute(): bool
+    {
+        return $this->hasExpired();
+    }
+
+    private function isActive(): bool
     {
         if ($this->isTesting()) {
             return true;

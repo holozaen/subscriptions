@@ -47,9 +47,9 @@ class SubscriptionTest extends TestCase
         $this->assertTrue($activeSubscriptionA->is(Subscription::active()->get()[0]));
         $this->assertTrue($activeSubscriptionB->is(Subscription::active()->get()[1]));
         $this->assertTrue($activeSubscriptionC->is(Subscription::active()->get()[2]));
-        $this->assertTrue($activeSubscriptionA->isActive());
-        $this->assertTrue($activeSubscriptionB->isActive());
-        $this->assertTrue($activeSubscriptionC->isActive());
+        $this->assertTrue($activeSubscriptionA->is_active);
+        $this->assertTrue($activeSubscriptionB->is_active);
+        $this->assertTrue($activeSubscriptionC->is_active);
     }
 
     /** @test */
@@ -69,10 +69,10 @@ class SubscriptionTest extends TestCase
         $this->assertTrue($paidSubscriptionB->is(Subscription::paid()->get()[1]));
         $this->assertTrue($unpaidSubscriptionC->is(Subscription::unpaid()->get()[0]));
         $this->assertTrue($unpaidSubscriptionD->is(Subscription::unpaid()->get()[1]));
-        $this->assertTrue($paidSubscriptionA->isPaid());
-        $this->assertTrue($paidSubscriptionB->isPaid());
-        $this->assertFalse($unpaidSubscriptionC->isPaid());
-        $this->assertFalse($unpaidSubscriptionD->isPaid());
+        $this->assertTrue($paidSubscriptionA->is_paid);
+        $this->assertTrue($paidSubscriptionB->is_paid);
+        $this->assertFalse($unpaidSubscriptionC->is_paid);
+        $this->assertFalse($unpaidSubscriptionD->is_paid);
     }
 
     /** @test */
@@ -89,10 +89,10 @@ class SubscriptionTest extends TestCase
         $this->assertCount(2, Subscription::withinPaymentTolerance()->get());
         $this->assertTrue($subscriptionWithinPaymentToleranceA->is(Subscription::withinPaymentTolerance()->get()[0]));
         $this->assertTrue($paidSubscriptionWithinPaymentToleranceB->is(Subscription::withinPaymentTolerance()->get()[1]));
-        $this->assertTrue($subscriptionWithinPaymentToleranceA->isWithinPaymentToleranceTime());
-        $this->assertTrue($paidSubscriptionWithinPaymentToleranceB->isWithinPaymentToleranceTime());
-        $this->assertFalse($subscriptionOutsidePaymentToleranceC->isWithinPaymentToleranceTime());
-        $this->assertFalse($subscriptionOutsidePaymentToleranceD->isWithinPaymentToleranceTime());
+        $this->assertTrue($subscriptionWithinPaymentToleranceA->is_within_payment_tolerance_time);
+        $this->assertTrue($paidSubscriptionWithinPaymentToleranceB->is_within_payment_tolerance_time);
+        $this->assertFalse($subscriptionOutsidePaymentToleranceC->is_within_payment_tolerance_time);
+        $this->assertFalse($subscriptionOutsidePaymentToleranceD->is_within_payment_tolerance_time);
     }
 
     /** @test */
@@ -105,10 +105,10 @@ class SubscriptionTest extends TestCase
         $this->assertCount(2, Subscription::testing()->get());
         $this->assertTrue($testingSubscriptionA->is(Subscription::testing()->get()[0]));
         $this->assertTrue($testingSubscriptionB->is(Subscription::testing()->get()[1]));
-        $this->assertTrue($testingSubscriptionA->isTesting());
-        $this->assertTrue($testingSubscriptionB->isTesting());
-        $this->assertFalse($activeSubscriptionC->isTesting());
-        $this->assertFalse($activeSubscriptionD->isTesting());
+        $this->assertTrue($testingSubscriptionA->is_testing);
+        $this->assertTrue($testingSubscriptionB->is_testing);
+        $this->assertFalse($activeSubscriptionC->is_testing);
+        $this->assertFalse($activeSubscriptionD->is_testing);
     }
 
     /** @test */
@@ -125,12 +125,12 @@ class SubscriptionTest extends TestCase
         $this->assertTrue($upcomingSubscriptionB->is(Subscription::upcoming()->get()[1]));
         $this->assertTrue($testingSubscriptionE->is(Subscription::upcoming()->get()[2]));
         $this->assertTrue($testingSubscriptionF->is(Subscription::upcoming()->get()[3]));
-        $this->assertTrue($upcomingSubscriptionA->isUpcoming());
-        $this->assertTrue($upcomingSubscriptionB->isUpcoming());
-        $this->assertFalse($activeSubscriptionC->isUpcoming());
-        $this->assertFalse($activeSubscriptionD->isUpcoming());
-        $this->assertTrue($testingSubscriptionE->isUpcoming());
-        $this->assertTrue($testingSubscriptionF->isUpcoming());
+        $this->assertTrue($upcomingSubscriptionA->is_upcoming);
+        $this->assertTrue($upcomingSubscriptionB->is_upcoming);
+        $this->assertFalse($activeSubscriptionC->is_upcoming);
+        $this->assertFalse($activeSubscriptionD->is_upcoming);
+        $this->assertTrue($testingSubscriptionE->is_upcoming);
+        $this->assertTrue($testingSubscriptionF->is_upcoming);
     }
 
     /** @test */
@@ -158,10 +158,10 @@ class SubscriptionTest extends TestCase
         $this->assertCount(2, Subscription::expiring()->get());
         $this->assertTrue($expiringSubscriptionA->is(Subscription::expiring()->get()[0]));
         $this->assertTrue($expiringSubscriptionB->is(Subscription::expiring()->get()[1]));
-        $this->assertTrue($expiringSubscriptionA->isExpiring());
-        $this->assertTrue($expiringSubscriptionB->isExpiring());
-        $this->assertFalse($activeSubscriptionC->isExpiring());
-        $this->assertFalse($activeSubscriptionD->isExpiring());
+        $this->assertTrue($expiringSubscriptionA->is_expiring);
+        $this->assertTrue($expiringSubscriptionB->is_expiring);
+        $this->assertFalse($activeSubscriptionC->is_expiring);
+        $this->assertFalse($activeSubscriptionD->is_expiring);
     }
 
     /** @test */
@@ -174,10 +174,10 @@ class SubscriptionTest extends TestCase
         $this->assertCount(2, Subscription::recurring()->get());
         $this->assertTrue($recurringSubscriptionA->is(Subscription::recurring()->get()[0]));
         $this->assertTrue($recurringSubscriptionB->is(Subscription::recurring()->get()[1]));
-        $this->assertTrue($recurringSubscriptionA->isRecurring());
-        $this->assertTrue($recurringSubscriptionB->isRecurring());
-        $this->assertFalse($nonRecurringSubscriptionC->isRecurring());
-        $this->assertFalse($nonRecurringSubscriptionD->isRecurring());
+        $this->assertTrue($recurringSubscriptionA->is_recurring);
+        $this->assertTrue($recurringSubscriptionB->is_recurring);
+        $this->assertFalse($nonRecurringSubscriptionC->is_recurring);
+        $this->assertFalse($nonRecurringSubscriptionD->is_recurring);
     }
 
     /** @test */
@@ -200,7 +200,7 @@ class SubscriptionTest extends TestCase
             'expires_at' => Carbon::parse('+ 8 weeks')
         ]);
 
-        $this->assertFalse($subscription->hasStarted());
+        $this->assertFalse($subscription->has_started);
 
         try {
             $subscription->remaining_days;
@@ -219,10 +219,10 @@ class SubscriptionTest extends TestCase
     {
         /** @var Subscription $subscription */
         $subscription = factory(Subscription::class)->states('active')->create();
-        $this->assertTrue($subscription->isActive());
+        $this->assertTrue($subscription->is_active);
         $subscription->cancel(true);
-        $this->assertFalse($subscription->isActive());
-        $this->assertTrue($subscription->isCancelled());
+        $this->assertFalse($subscription->is_active);
+        $this->assertTrue($subscription->is_cancelled);
     }
 
     /** @test
@@ -234,13 +234,13 @@ class SubscriptionTest extends TestCase
         $subscription = factory(Subscription::class)->states('active')->create([
             'expires_at' => Carbon::parse('+ 1 week')
         ]);
-        $this->assertTrue($subscription->isActive());
+        $this->assertTrue($subscription->is_active);
         /** @noinspection ArgumentEqualsDefaultValueInspection */
         $subscription->cancel(false);
         $this->assertEquals($subscription->expires_at, $subscription->cancelled_at);
-        $this->assertTrue($subscription->isActive());
-        $this->assertTrue($subscription->isPendingCancellation());
-        $this->assertFalse($subscription->isCancelled());
+        $this->assertTrue($subscription->is_active);
+        $this->assertTrue($subscription->is_pending_cancellation);
+        $this->assertFalse($subscription->is_cancelled);
     }
 
     /** @test */
@@ -248,7 +248,7 @@ class SubscriptionTest extends TestCase
     {
         /** @var Subscription $subscription */
         $subscription = factory(Subscription::class)->states('cancelled')->create();
-        $this->assertTrue($subscription->isCancelled());
+        $this->assertTrue($subscription->is_cancelled);
         try {
             $subscription->cancel(true);
         } catch (SubscriptionException $e) {
@@ -268,12 +268,12 @@ class SubscriptionTest extends TestCase
         /** @noinspection ArgumentEqualsDefaultValueInspection */
         $subscription->cancel(false);
 
-        $this->assertTrue($subscription->isPendingCancellation());
+        $this->assertTrue($subscription->is_pending_cancellation);
 
         $subscription->cancel(true);
 
-        $this->assertTrue($subscription->isCancelled());
-        $this->assertFalse($subscription->isPendingCancellation());
+        $this->assertTrue($subscription->is_cancelled);
+        $this->assertFalse($subscription->is_pending_cancellation);
     }
 
     /** @test */

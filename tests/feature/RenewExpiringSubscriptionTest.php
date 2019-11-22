@@ -51,10 +51,10 @@ class RenewExpiringSubscriptionTest extends TestCase
         $upcomingSubscription = $this->user->renewExpiringSubscription(true);
 
         $this->assertTrue($this->user->hasUpcomingSubscription());
-        $this->assertTrue($this->user->activeSubscription()->is($activeSubscription));
+        $this->assertTrue($this->user->active_subscription->is($activeSubscription));
         $this->assertTrue($this->user->upcomingSubscription()->is($upcomingSubscription));
-        $this->assertTrue($upcomingSubscription->isPaid());
-        $this->assertTrue($upcomingSubscription->isRenewed());
+        $this->assertTrue($upcomingSubscription->is_paid);
+        $this->assertTrue($upcomingSubscription->is_renewed);
         $this->assertEqualsWithDelta(Carbon::now(), $upcomingSubscription->renewed_at, 1);
         /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionRenewed::class);
@@ -75,7 +75,7 @@ class RenewExpiringSubscriptionTest extends TestCase
             $this->user->renewExpiringSubscription(true);
         } catch (SubscriptionException $e) {
             $this->assertFalse($this->user->hasUpcomingSubscription());
-            $this->assertTrue($this->user->activeSubscription()->is($activeSubscription));
+            $this->assertTrue($this->user->active_subscription->is($activeSubscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;
@@ -99,7 +99,7 @@ class RenewExpiringSubscriptionTest extends TestCase
             $this->user->renewExpiringSubscription(true);
         } catch (SubscriptionException $e) {
             $this->assertFalse($this->user->hasUpcomingSubscription());
-            $this->assertTrue($this->user->activeSubscription()->is($activeSubscription));
+            $this->assertTrue($this->user->active_subscription->is($activeSubscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;
@@ -123,7 +123,7 @@ class RenewExpiringSubscriptionTest extends TestCase
             $this->user->renewExpiringSubscription(true);
         } catch (SubscriptionException $e) {
             $this->assertFalse($this->user->hasUpcomingSubscription());
-            $this->assertTrue($this->user->activeSubscription()->is($activeSubscription));
+            $this->assertTrue($this->user->active_subscription->is($activeSubscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;
@@ -147,7 +147,7 @@ class RenewExpiringSubscriptionTest extends TestCase
             $this->user->renewExpiringSubscription(true);
         } catch (SubscriptionException $e) {
             $this->assertFalse($this->user->hasUpcomingSubscription());
-            $this->assertTrue($this->user->activeSubscription()->is($activeSubscription));
+            $this->assertTrue($this->user->active_subscription->is($activeSubscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;
@@ -188,7 +188,7 @@ class RenewExpiringSubscriptionTest extends TestCase
             $this->user->renewExpiringSubscription(true);
         } catch (SubscriptionException $e) {
             $this->assertFalse($this->user->hasUpcomingSubscription());
-            $this->assertTrue($this->user->activeSubscription()->is($activeSubscription));
+            $this->assertTrue($this->user->active_subscription->is($activeSubscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;

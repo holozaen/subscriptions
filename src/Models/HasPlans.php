@@ -24,13 +24,15 @@ trait HasPlans
         return $this->morphMany(config('subscriptions.models.subscription'), 'model');
     }
 
-    /**
-     * @return Subscription | null
-     */
-    public function activeSubscription(): ?Subscription
+    private function activeSubscription()
     {
         /** @noinspection PhpUndefinedMethodInspection */
         return $this->subscriptions()->active()->first();
+    }
+
+    public function getActiveSubscriptionAttribute()
+    {
+        return $this->activeSubscription();
     }
 
     /**
@@ -158,7 +160,7 @@ trait HasPlans
             throw new SubscriptionException('no active subscription found');
         }
 
-        if (false === $immediate && $previousSubscription->isTesting()) {
+        if (false === $immediate && $previousSubscription->is_testing) {
             throw new SubscriptionException('can only migrate a subscription in the test phase immediately');
         }
 
@@ -292,15 +294,16 @@ trait HasPlans
      */
     public function renewExpiringSubscription(bool $markAsPaid = false): Subscription
     {
+        /** @var Subscription $activeSubscription */
         if (!$activeSubscription = $this->activeSubscription()) {
             throw new SubscriptionException('No active subscription found');
         }
 
-        if (!$activeSubscription->isPaid()) {
+        if (!$activeSubscription->is_paid) {
             throw new SubscriptionException('Renewing is not possible if currently active Subscription is not paid');
         }
 
-        if (!$activeSubscription->isExpiring()) {
+        if (!$activeSubscription->is_expiring) {
             throw new SubscriptionException('Renewing is not possible if subscription is expiring earlyer than tomorrow midnight');
         }
 
@@ -308,7 +311,7 @@ trait HasPlans
             throw new SubscriptionException('Renewing a non-recurring subscription is not possible');
         }
 
-        if ($activeSubscription->isPendingCancellation()) {
+        if ($activeSubscription->is_pending_cancellation) {
             throw new SubscriptionException('Renewing a subscription that is pending cancellation is not possible');
         }
 

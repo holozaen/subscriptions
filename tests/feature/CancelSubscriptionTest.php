@@ -41,12 +41,12 @@ class CancelSubscriptionTest extends TestCase
     {
         $subscription = $this->user->subscribeTo($this->plan, false);
         $subscription->markAsPaid();
-        $this->assertTrue($subscription->isActive());
+        $this->assertTrue($subscription->is_active);
 
         Event::fake();
         $this->user->cancelSubscription(true);
-        $this->assertFalse($subscription->fresh()->isActive());
-        $this->assertTrue($subscription->fresh()->isCancelled());
+        $this->assertFalse($subscription->fresh()->is_active);
+        $this->assertTrue($subscription->fresh()->is_cancelled);
         /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionCancelled::class);
     }
@@ -58,13 +58,13 @@ class CancelSubscriptionTest extends TestCase
     {
         $subscription = $this->user->subscribeTo($this->plan, false);
         $subscription->markAsPaid();
-        $this->assertTrue($subscription->isActive());
+        $this->assertTrue($subscription->is_active);
 
         Event::fake();
         $this->user->cancelSubscription();
-        $this->assertTrue($subscription->fresh()->isActive());
-        $this->assertFalse($subscription->fresh()->isCancelled());
-        $this->assertTrue($subscription->fresh()->isPendingCancellation());
+        $this->assertTrue($subscription->fresh()->is_active);
+        $this->assertFalse($subscription->fresh()->is_cancelled);
+        $this->assertTrue($subscription->fresh()->is_pending_cancellation);
         $this->assertEquals($subscription->fresh()->expires_at, $subscription->fresh()->cancelled_at);
         /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionCancelled::class);
@@ -81,7 +81,7 @@ class CancelSubscriptionTest extends TestCase
         try{
             $this->user->cancelSubscription(true);
         } catch (SubscriptionException $e) {
-            $this->assertFalse($subscription->fresh()->isCancelled());
+            $this->assertFalse($subscription->fresh()->is_cancelled);
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionCancelled::class);
             return;
@@ -97,7 +97,7 @@ class CancelSubscriptionTest extends TestCase
     {
         $oldSubscription = $this->user->subscribeTo($this->plan, false);
         $oldSubscription->markAsPaid();
-        $activeSubscription = $this->user->activeSubscription();
+        $activeSubscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
@@ -106,7 +106,7 @@ class CancelSubscriptionTest extends TestCase
         $newSubscription = $this->user->migrateSubscriptionTo($durationPlan, false, true, 30);
         $newSubscription->markAsPaid();
 
-        $activeSubscription = $this->user->activeSubscription();
+        $activeSubscription = $this->user->active_subscription;
         $this->assertTrue($activeSubscription->is($newSubscription));
         /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionMigrated::class);
@@ -119,7 +119,7 @@ class CancelSubscriptionTest extends TestCase
     {
         $oldSubscription = $this->user->subscribeTo($this->plan, false);
         $oldSubscription->markAsPaid();
-        $activeSubscription = $this->user->activeSubscription();
+        $activeSubscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
         Event::fake();
@@ -142,7 +142,7 @@ class CancelSubscriptionTest extends TestCase
     public function cannot_migrate_a_testing_subscription_on_the_expiry_date(): void
     {
         $this->user->subscribeTo($this->plan, false, 30);
-        $activeSubscription = $this->user->activeSubscription();
+        $activeSubscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
@@ -153,7 +153,7 @@ class CancelSubscriptionTest extends TestCase
             $newSubscription->markAsPaid();
 
         } catch (SubscriptionException $e) {
-            $activeSubscription = $this->user->activeSubscription();
+            $activeSubscription = $this->user->active_subscription;
             $this->assertTrue($activeSubscription->is($activeSubscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionMigrated::class);

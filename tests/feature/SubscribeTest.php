@@ -51,17 +51,17 @@ class SubscribeTest extends TestCase
         $this->assertTrue($subscription->is_recurring);
         $this->assertNull($subscription->refunded_at);
         $this->assertNull($subscription->cancelled_at);
-        $this->assertFalse($subscription->isTesting());
-        $this->assertFalse($subscription->isPaid());
-        $this->assertFalse($subscription->isActive());
+        $this->assertFalse($subscription->is_testing);
+        $this->assertFalse($subscription->is_paid);
+        $this->assertFalse($subscription->is_active);
         /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(NewSubscription::class);
 
         $subscription->markAsPaid();
         /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionPaymentSucceeded::class);
-        $this->assertTrue($subscription->fresh()->isPaid());
-        $this->assertTrue($subscription->fresh()->isActive());
+        $this->assertTrue($subscription->fresh()->is_paid);
+        $this->assertTrue($subscription->fresh()->is_active);
     }
 
     /** @test *
@@ -78,7 +78,7 @@ class SubscribeTest extends TestCase
         Event::assertDispatched(NewSubscription::class);
         $this->assertCount(1, $this->user->subscriptions);
         /** @var Subscription $subscription */
-        $subscription = $this->user->activeSubscription();
+        $subscription = $this->user->active_subscription;
         $this->assertTrue($plan->is($subscription->plan));
         $this->assertEqualsWithDelta(Carbon::now()->addDays(30), $subscription->starts_at, 1);
         /** @noinspection PhpUndefinedMethodInspection */
@@ -86,12 +86,12 @@ class SubscribeTest extends TestCase
         $this->assertFalse($subscription->is_recurring);
         $this->assertNull($subscription->refunded_at);
         $this->assertNull($subscription->cancelled_at);
-        $this->assertTrue($subscription->isTesting());
+        $this->assertTrue($subscription->is_testing);
         $this->assertNull($subscription->paid_at);
-        $this->assertTrue($subscription->isActive());
-        $this->assertFalse($subscription->isPaid());
-        $this->assertFalse($subscription->isPendingCancellation());
-        $this->assertFalse($subscription->isRefunded());
+        $this->assertTrue($subscription->is_active);
+        $this->assertFalse($subscription->is_paid);
+        $this->assertFalse($subscription->is_pending_cancellation);
+        $this->assertFalse($subscription->is_refunded);
     }
 
     /** @test *
@@ -109,7 +109,7 @@ class SubscribeTest extends TestCase
         Event::assertDispatched(NewSubscription::class);
         $this->assertCount(1, $this->user->subscriptions);
         /** @var Subscription $subscription */
-        $subscription = $this->user->activeSubscription();
+        $subscription = $this->user->active_subscription;
         $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
         $this->assertTrue($plan->is($subscription->plan));
         /** @noinspection PhpUndefinedMethodInspection */
@@ -117,12 +117,12 @@ class SubscribeTest extends TestCase
         $this->assertTrue($subscription->is_recurring);
         $this->assertNull($subscription->refunded_at);
         $this->assertNull($subscription->cancelled_at);
-        $this->assertFalse($subscription->isTesting());
+        $this->assertFalse($subscription->is_testing);
         $this->assertEqualsWithDelta(Carbon::now(), $subscription->paid_at, 1);
-        $this->assertTrue($subscription->isActive());
-        $this->assertTrue($subscription->isPaid());
-        $this->assertFalse($subscription->isPendingCancellation());
-        $this->assertFalse($subscription->isRefunded());
+        $this->assertTrue($subscription->is_active);
+        $this->assertTrue($subscription->is_paid);
+        $this->assertFalse($subscription->is_pending_cancellation);
+        $this->assertFalse($subscription->is_refunded);
     }
 
     /** @test * */
@@ -155,7 +155,7 @@ class SubscribeTest extends TestCase
         } catch (SubscriptionException $e) {
             $this->assertCount(1, $this->user->subscriptions);
             /** @var Subscription $subscription */
-            $this->assertTrue($this->user->activeSubscription()->is($subscription));
+            $this->assertTrue($this->user->active_subscription->is($subscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(NewSubscription::class);
             return;

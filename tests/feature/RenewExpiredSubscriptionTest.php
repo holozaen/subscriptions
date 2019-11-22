@@ -48,7 +48,7 @@ class RenewExpiredSubscriptionTest extends TestCase
         Event::fake();
         $this->user->renewExpiredSubscription(true);
 
-        $subscription = $this->user->activeSubscription();
+        $subscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $subscription->plan->type);
         /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEqualsWithDelta(Carbon::now()->addYear()->endOfDay(), $subscription->expires_at, 1);
