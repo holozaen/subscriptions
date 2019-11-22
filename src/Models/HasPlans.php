@@ -38,28 +38,43 @@ trait HasPlans
     /**
      * @return Subscription | null
      */
-    public function upcomingSubscription(): ?Subscription
+    private function upcomingSubscription(): ?Subscription
     {
         /** @noinspection PhpUndefinedMethodInspection */
         return $this->subscriptions()->upcoming()->first();
     }
 
+    public function getUpcomingSubscriptionAttribute(): ?Subscription
+    {
+        return $this->upcomingSubscription();
+    }
+
     /**
      * @return Subscription | null
      */
-    public function latestSubscription(): ?Subscription
+    private function latestSubscription(): ?Subscription
     {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->subscriptions()->latest('created_at')->first();
     }
 
-    public function activeOrLastSubscription()
+    public function getLatestSubscriptionAttribute(): ?Subscription
+    {
+        return $this->latestSubscription();
+    }
+
+    private function activeOrLastSubscription()
     {
         if ($this->hasActiveSubscription()) {
             return $this->activeSubscription();
         }
 
         return $this->subscriptions()->latest('starts_at')->first();
+    }
+
+    public function getActiveOrLastSubscriptionAttribute(): ?Subscription
+    {
+        return $this->activeOrLastSubscription();
     }
 
     /**

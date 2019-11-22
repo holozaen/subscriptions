@@ -72,7 +72,7 @@ class RenewExpiredSubscriptionTest extends TestCase
         try {
             $this->user->renewExpiredSubscription(true);
         } catch (SubscriptionException $e) {
-            $this->assertTrue($this->user->activeOrLastSubscription()->is($expiredSubscription));
+            $this->assertTrue($this->user->active_or_last_subscription->is($expiredSubscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionRenewed::class);
             return;

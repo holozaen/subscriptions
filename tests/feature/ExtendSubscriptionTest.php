@@ -71,7 +71,7 @@ class ExtendSubscriptionTest extends TestCase
         try {
             $this->user->extendSubscription(10);
         } catch (SubscriptionException $e) {
-            $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->activeOrLastSubscription()->expires_at, 1);
+            $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->active_or_last_subscription->expires_at, 1);
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionExtended::class);
             return;
@@ -115,7 +115,7 @@ class ExtendSubscriptionTest extends TestCase
         try {
             $this->user->extendSubscriptionTo(Carbon::parse('+ 2 weeks'));
         } catch (SubscriptionException $e) {
-            $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->activeOrLastSubscription()->expires_at, 1);
+            $this->assertEqualsWithDelta(Carbon::yesterday(), $this->user->active_or_last_subscription->expires_at, 1);
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionExtended::class);
             return;
@@ -143,7 +143,7 @@ class ExtendSubscriptionTest extends TestCase
 
         $activeSubscription = $this->user->active_subscription;
         $this->assertTrue($activeSubscription->is($oldSubscription));
-        $latestSubscription = $this->user->latestSubscription();
+        $latestSubscription = $this->user->latest_subscription;
         $this->assertEquals('monthly', $latestSubscription->plan->type);
         $this->assertEqualsWithDelta($activeSubscription->expires_at, $latestSubscription->starts_at, 1);
     }

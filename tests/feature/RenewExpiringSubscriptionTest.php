@@ -52,7 +52,7 @@ class RenewExpiringSubscriptionTest extends TestCase
 
         $this->assertTrue($this->user->hasUpcomingSubscription());
         $this->assertTrue($this->user->active_subscription->is($activeSubscription));
-        $this->assertTrue($this->user->upcomingSubscription()->is($upcomingSubscription));
+        $this->assertTrue($this->user->upcoming_subscription->is($upcomingSubscription));
         $this->assertTrue($upcomingSubscription->is_paid);
         $this->assertTrue($upcomingSubscription->is_renewed);
         $this->assertEqualsWithDelta(Carbon::now(), $upcomingSubscription->renewed_at, 1);

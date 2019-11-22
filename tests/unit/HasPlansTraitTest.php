@@ -18,7 +18,7 @@ class HasPlansTraitTest extends TestCase
         $subscription = factory(Subscription::class)->states('active')->create();
         /** @var User $user */
         $user = $subscription->model;
-        $this->assertTrue($user->activeOrLastSubscription()->is($subscription));
+        $this->assertTrue($user->active_or_last_subscription->is($subscription));
     }
 
     /** @test */
@@ -29,7 +29,7 @@ class HasPlansTraitTest extends TestCase
         factory(Subscription::class)->states('expired')->create(['expires_at' => Carbon::parse('-2 weeks')]);
         /** @var User $user */
         $user = $latestExpiredSubscription->model;
-        $this->assertTrue($user->activeOrLastSubscription()->is($latestExpiredSubscription));
+        $this->assertTrue($user->active_or_last_subscription->is($latestExpiredSubscription));
     }
 
     /** @test */

@@ -76,7 +76,7 @@ class MigrateSubscriptionTest extends TestCase
 
         $activeSubscription = $this->user->active_subscription;
         $this->assertTrue($activeSubscription->is($oldSubscription));
-        $latestSubscription = $this->user->latestSubscription();
+        $latestSubscription = $this->user->latest_subscription;
         $this->assertEquals('monthly', $latestSubscription->plan->type);
         $this->assertEqualsWithDelta($activeSubscription->expires_at, $latestSubscription->starts_at, 1);
     }

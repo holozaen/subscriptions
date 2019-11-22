@@ -38,7 +38,7 @@ class SubscribeTest extends TestCase
         $this->user->subscribeTo($plan);
         $this->assertCount(1, $this->user->subscriptions);
         /** @var Subscription $subscription */
-        $subscription = $this->user->activeOrLastSubscription();
+        $subscription = $this->user->active_or_last_subscription;
         $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
         /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEqualsWithDelta(Carbon::now()->addYear()->endOfDay(), $subscription->expires_at, 1);
@@ -176,7 +176,7 @@ class SubscribeTest extends TestCase
         } catch (SubscriptionException $e) {
             $this->assertCount(1, $this->user->subscriptions);
             /** @noinspection PhpUndefinedVariableInspection */
-            $this->assertTrue($this->user->upcomingSubscription()->is($subscription));
+            $this->assertTrue($this->user->upcoming_subscription->is($subscription));
             /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(NewSubscription::class);
             return;
