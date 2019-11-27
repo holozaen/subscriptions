@@ -46,6 +46,7 @@ use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
  * @property Plan plan
  * @property HasMany features
  * @property boolean has_started
+ * @property boolean is_expiring
  * @property boolean is_testing
  * @property boolean is_paid
  * @property boolean is_pending_cancellation
