@@ -74,6 +74,7 @@ trait HasPlans
 
     public function getActiveOrLastSubscriptionAttribute(): ?Subscription
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->activeOrLastSubscription();
     }
 
@@ -141,6 +142,7 @@ trait HasPlans
                 'starts_at' => $dateProcessor->getStartDate(),
                 'expires_at' => $dateProcessor->getExpirationDate(),
                 'cancelled_at' => null,
+                'paid_at' => $plan->price === 0 ? Carbon::now() : null,
                 'price' => $plan->price,
                 'currency' => $plan->currency,
                 'is_recurring' => $isRecurring,
@@ -210,7 +212,6 @@ trait HasPlans
         if (!$activeSubscription  = $this->activeSubscription()) {
             throw new SubscriptionException('no active subscription found');
         }
-        /** @noinspection PhpUndefinedMethodInspection */
         $activeSubscription->update([
             'expires_at' => Carbon::parse($activeSubscription->expires_at)->addDays($days)->endOfDay(),
         ]);
@@ -293,7 +294,6 @@ trait HasPlans
         }
 
         $subscription = $this->activeSubscription();
-        /** @noinspection NullPointerExceptionInspection */
         $subscription->cancel($immediate);
 
         $this->dispatchSubscriptionEvent(new SubscriptionCancelled($subscription));
