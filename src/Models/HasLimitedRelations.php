@@ -17,7 +17,7 @@ trait HasLimitedRelations
     public function getUsageFor(string $relation): stdClass
     {
         if ($this->$relation) {
-            $usedItems = count($this->$relation);
+            $usedItems = count($this->$relation()->get());
             $availableItems = $this->getFeatureAvailabilityForRelation($relation);
             $remainingItems = $availableItems - $usedItems;
 
