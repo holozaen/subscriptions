@@ -8,7 +8,7 @@ use OnlineVerkaufen\Subscriptions\Models\Subscription;
 use OnlineVerkaufen\Subscriptions\Test\Models\User;
 use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
-class HasPlansTraitTest extends TestCase
+class HasSubscriptionsTraitTest extends TestCase
 {
 
     /** @test */
@@ -18,6 +18,7 @@ class HasPlansTraitTest extends TestCase
         $subscription = factory(Subscription::class)->states('active')->create();
         /** @var User $user */
         $user = $subscription->model;
+        /** @noinspection PhpUndefinedFieldInspection */
         $this->assertTrue($user->active_or_last_subscription->is($subscription));
     }
 
@@ -29,6 +30,7 @@ class HasPlansTraitTest extends TestCase
         factory(Subscription::class)->states('expired')->create(['expires_at' => Carbon::parse('-2 weeks')]);
         /** @var User $user */
         $user = $latestExpiredSubscription->model;
+        /** @noinspection PhpUndefinedFieldInspection */
         $this->assertTrue($user->active_or_last_subscription->is($latestExpiredSubscription));
     }
 

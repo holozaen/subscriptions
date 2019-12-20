@@ -21,7 +21,9 @@ abstract class TestCase extends OrchestraTestCase
 
         $this->loadLaravelMigrations(['--database' => 'sqlite']);
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/fixtures/migrations');
         $this->withFactories(__DIR__.'/../database/factories');
+        $this->withFactories(__DIR__.'/fixtures/factories');
 
         $this->artisan('migrate', ['--database' => 'sqlite']);
     }
@@ -40,7 +42,6 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('subscriptions.models.plan', Plan::class);
         $app['config']->set('subscriptions.models.feature', Feature::class);
         $app['config']->set('subscriptions.models.subscription', Subscription::class);
-        $app['config']->set('subscriptions.models.usage', Feature\Usage::class);
         $app['config']->set('subscriptions.paymentToleranceDays', 0);
     }
 }

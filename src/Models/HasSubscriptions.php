@@ -15,7 +15,7 @@ use OnlineVerkaufen\Subscriptions\Events\SubscriptionMigrated;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\AbstractPlanTypeDateProcessor;
 
-trait HasPlans
+trait HasSubscriptions
 {
     use DispatchesSubscriptionEvents;
 

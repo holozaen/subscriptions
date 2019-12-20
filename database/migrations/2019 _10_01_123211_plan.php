@@ -41,6 +41,8 @@ class Plan extends Migration
             $table->string('code');
             $table->enum('type', [Feature::TYPE_FEATURE, Feature::TYPE_LIMIT])->default('feature');
             $table->unsignedInteger('limit')->default(0);
+            $table->string('restricted_model')->nullable();
+            $table->string('restricted_relation')->nullable();
             $table->unsignedInteger('position')->default(0);
 
             $table->string('name');
@@ -63,7 +65,6 @@ class Plan extends Migration
             $table->boolean('is_recurring')->default(true);
 
             $table->timestamp('test_ends_at')->nullable()->default(Carbon::now());
-            /** @noinspection PhpUndefinedMethodInspection */
             $table->timestamp('payment_tolerance_ends_at')->nullable()->default(config('subscriptions.paymentToleranceDays') > 0 ? Carbon::now()->addDays(config('subscriptions.paymentToleranceDays'))->endOfDay() : Carbon::now());
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('starts_at')->nullable();
@@ -71,17 +72,6 @@ class Plan extends Migration
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamp('refunded_at')->nullable();
-
-            $table->timestamps();
-        });
-
-        Schema::create('plan_feature_usages', static function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('code');
-            $table->string('model_type')->nullable();
-            $table->integer('model_id')->nullable();
-            $table->integer('subscription_id');
-            $table->unsignedBigInteger('used')->default(0);
 
             $table->timestamps();
         });
@@ -98,7 +88,5 @@ class Plan extends Migration
         Schema::dropIfExists('plans');
         Schema::dropIfExists('plan_features');
         Schema::dropIfExists('plan_subscriptions');
-        Schema::dropIfExists('plan_usages');
-        Schema::dropIfExists('plan_feature_usages');
     }
 }

@@ -11,14 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use OnlineVerkaufen\Subscriptions\Events\DispatchesSubscriptionEvents;
-use OnlineVerkaufen\Subscriptions\Events\FeatureConsumed;
-use OnlineVerkaufen\Subscriptions\Events\FeatureUnconsumed;
-use OnlineVerkaufen\Subscriptions\Events\FeatureUsageReset;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionPaymentSucceeded;
-use OnlineVerkaufen\Subscriptions\Exception\FeatureException;
 use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
-use OnlineVerkaufen\Subscriptions\Models\Feature\Usage;
 
 /**
  * @property int id
@@ -103,11 +98,6 @@ class Subscription extends Model
     public function features(): HasMany
     {
         return $this->plan->features();
-    }
-
-    public function usages(): HasMany
-    {
-        return $this->hasMany(config('subscriptions.models.usage'), 'subscription_id');
     }
 
     public function scopeActive($query): Builder //regular or testing
@@ -380,162 +370,10 @@ class Subscription extends Model
 
     /**
      * @param string $featureCode
-     * @param int $amount
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function consumeFeature(string $featureCode, int $amount, ?string $model_type = null, ?int $model_id = null): void
-    {
-        /** @var Usage $usage */
-        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
-
-        if (!$this->hasAvailable($featureCode,$amount, $model_type, $model_id)) {
-            throw new FeatureException(
-                sprintf('Your usage exceeds the allowed usage amount. You tried to use %s, remaining were only %s',
-                    $amount,
-                    $this->getRemainingOf($featureCode, $model_type, $model_id)
-                )
-            );
-        }
-
-        $usage->increaseBy($amount);
-        event(new FeatureConsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode, $model_type, $model_id), $model_type, $model_id));
-    }
-
-    /**
-     * @param string $featureCode
-     * @param int $amount
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function unconsumeFeature(string $featureCode, int $amount, ?string $model_type = null, ?int $model_id = null): void
-    {
-        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
-
-        $usage->decreaseBy($amount);
-
-        event(new FeatureUnconsumed($this, $this->getFeatureByCode($featureCode), $amount, $this->getRemainingOf($featureCode, $model_type, $model_id), $model_type, $model_id));
-    }
-
-    /**
-     * @param string $featureCode
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function resetFeatureUsage(string $featureCode, ?string $model_type = null, ?int $model_id = null): void
-    {
-        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
-
-        $usage->reset();
-
-        event(new FeatureUsageReset($this, $this->getFeatureByCode($featureCode), $model_type, $model_id));
-    }
-
-
-    /**
-     * @param string $featureCode
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @return int
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function getUsageOf(string $featureCode, ?string $model_type = null, ?int $model_id = null): int
-    {
-        $usage = $this->usageModelOf($featureCode,$model_type, $model_id);
-        /** @var Usage $usage */
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $usage->used;
-    }
-
-    /**
-     * Get the amount remaining for a feature.
-     *
-     * @param string $featureCode The feature code. This feature has to be 'limit' type.
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @return int The amount remaining.
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function getRemainingOf(string $featureCode, ?string $model_type = null, ?int $model_id = null): int
-    {
-        $usage = $this->usageModelOf($featureCode, $model_type, $model_id);
-
-        /** @var Feature $feature */
-        $feature = $this->getFeatureByCode($featureCode);
-
-        if ($feature->isUnlimited()) {
-            return 9999;
-        }
-
-        return (int) ($feature->isUnlimited()) ? 9999 : ($feature->limit - $usage->used);
-    }
-
-    /**
-     * @param string $featureCode
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @return Usage
-     */
-    private function createEmptyUsage(string $featureCode, ?string $model_type, ?int $model_id): Usage
-    {
-        $usageModel = config('subscriptions.models.usage');
-
-        /** @var Usage $usage */
-        $usage = $this->usages()->save(new $usageModel([
-            'code' => $featureCode,
-            'model_type' => $model_type,
-            'model_id' => $model_id,
-            'used' => 0,
-        ]));
-
-        return $usage;
-    }
-
-    /**
-     * @param string $featureCode
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @return Usage
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    private function usageModelOf(string $featureCode, ?string $model_type, ?int $model_id): Usage
-    {
-        if (!$model_type) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $usage = $this->usages()->code($featureCode)->first();
-        } else {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $usage = $this->usages()->code($featureCode)->where('model_type', $model_type)->where('model_id', $model_id)->first();
-        }
-
-        if (!$usage) {
-            /** @var Feature $feature */
-            $feature = $this->getFeatureByCode($featureCode);
-
-            if ($feature->isFeatureType()) {
-                throw new FeatureException('This feature is not limited and thus can not be consumed');
-            }
-            $usage = $this->createEmptyUsage($featureCode, $model_type, $model_id);
-        }
-
-        return $usage;
-    }
-
-    /**
-     * @param string $featureCode
      * @return Feature
      * @throws FeatureNotFoundException
      */
-    private function getFeatureByCode(string $featureCode): Feature
+    public function getFeatureByCode(string $featureCode): Feature
     {
         /** @var Feature $feature */
         /** @noinspection PhpUndefinedMethodInspection */
@@ -544,51 +382,6 @@ class Subscription extends Model
             throw new FeatureNotFoundException(sprintf('No feature found with code %s', $featureCode));
         }
         return $feature;
-    }
-
-    /**
-     * @param string $featureCode
-     * @param int $amount
-     * @param string|null $model_type
-     * @param int|null $model_id
-     * @return bool
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function hasAvailable(string $featureCode, int $amount, ?string $model_type, ?int $model_id): bool
-    {
-        return $amount <= $this->getRemainingOf($featureCode, $model_type, $model_id);
-    }
-
-    /**
-     * @return array
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function getFeatureUsageStatsAttribute(): array
-    {
-        $usageStats = [];
-        /** @var Feature\ $feature */
-        /** @noinspection PhpUndefinedMethodInspection */
-        foreach ($this->features()->limited()->get() as $feature) {
-            $usageStats[] = [
-                'code' => $feature->code,
-                'type' => 'limited',
-                'usage' => $this->getUsageStatsOf($feature->code),
-                'remaining' => $this->getRemainingStatsOf($feature->code),
-            ];
-        }
-
-        /** @noinspection PhpUndefinedMethodInspection */
-        foreach ($this->features()->unlimited()->get() as $feature) {
-            $usageStats[] = [
-                'code' => $feature->code,
-                'type' => 'unlimited',
-                'usage' => $this->getUsageStatsOf($feature->code),
-            ];
-        }
-
-        return $usageStats;
     }
 
     public function getFeatureAuthorizationsAttribute(): array
@@ -602,50 +395,16 @@ class Subscription extends Model
         return $authorizations;
     }
 
-    /**
-     * @param $featureCode
-     * @return array|int
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    private function getUsageStatsOf($featureCode)
+    public function getLimitForClassRelation(string $base_class_name, string $relation): ?int
     {
-        /** @noinspection PhpUndefinedMethodInspection */
-        $usages = Usage::code($featureCode)->get();
-        if (count($usages) === 0) {
-            return $this->getUsageOf($featureCode);
+        $feature = $this->plan->features()
+            ->where('type', Feature::TYPE_LIMIT)
+            ->where('restricted_model', $base_class_name)
+            ->where('restricted_relation', $relation)
+            ->first();
+        if (!$feature) {
+            return null;
         }
-        if (count($usages) === 1 && $usages[0]->model_type === null) {
-            return $this->getUsageOf($featureCode);
-        }
-        $stats = [];
-        foreach ($usages as $usage) {
-            $stats[] = [
-                'model_type' =>  $usage->model_type,
-                'model_id' => $usage->model_id,
-                'usage' => $this->getUsageOf($featureCode, $usage->model_type, $usage->model_id),
-                'remaining' => $this->getRemainingOf($featureCode, $usage->model_type, $usage->model_id)
-            ];
-        }
-        return $stats;
-    }
-
-    /**
-     * @param $featureCode
-     * @return int|null
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    private function getRemainingStatsOf($featureCode): ?int
-    {
-        /** @noinspection PhpUndefinedMethodInspection */
-        $usages = Usage::code($featureCode)->get();
-        if (count($usages) === 0) {
-            return $this->getRemainingOf($featureCode);
-        }
-        if (count($usages) === 1 && $usages[0]->model_type === null) {
-            return $this->getRemainingOf($featureCode);
-        }
-        return null;
+        return $feature->limit;
     }
 }

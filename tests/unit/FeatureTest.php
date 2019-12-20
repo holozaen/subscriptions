@@ -67,7 +67,6 @@ class FeatureTest extends TestCase
         $this->assertEquals($this->subscription->features()->unlimited()->count(), 1);
         /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEquals($this->subscription->features()->feature()->count(), 1);
-        $this->assertEquals($this->subscription->usages()->count(), 0);
     }
 
     /** @test */

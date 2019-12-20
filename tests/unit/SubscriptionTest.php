@@ -4,7 +4,6 @@ namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use Carbon\Carbon;
-use OnlineVerkaufen\Subscriptions\Exception\FeatureException;
 use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
@@ -283,114 +282,6 @@ class SubscriptionTest extends TestCase
         $this->assertTrue($subscription->is_active);
     }
 
-    /** @test
-     * @throws FeatureNotFoundException
-     * @throws FeatureException
-     */
-    public function it_knows_its_features(): void
-    {
-        $plan = factory(Plan::class)->create();
-        /** @var Subscription $subscription */
-        $plan->features()->saveMany([
-            new Feature([
-                'name' => 'Limited feature',
-                'code' => 'feature.limited',
-                'description' => 'Some limited feature',
-                'type' => 'limit',
-                'limit' => 10,
-            ]),
-            new Feature([
-                'name' => 'Feature Feature',
-                'code' => 'feature.feature',
-                'description' => 'Some feature feature',
-                'type' => 'feature',
-            ]),
-            new Feature([
-                'name' => 'Unlimited feature',
-                'code' => 'feature.unlimited',
-                'description' => 'Some unlimited feature',
-                'type' => 'limit',
-                'limit' => 0,
-            ]),
-        ]);
-        $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $this->assertEquals('feature.limited', $subscription->features->shift()->code);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $this->assertEquals('feature.feature', $subscription->features->shift()->code);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $this->assertEquals('feature.unlimited', $subscription->features->shift()->code);
-        $this->assertEquals(10, $subscription->getRemainingOf('feature.limited'));
-    }
-
-    /**
-     * @test
-     * @throws FeatureException
-     * @throws FeatureNotFoundException
-     */
-    public function it_know_its_feature_usage_stats(): void
-    {
-        $plan = factory(Plan::class)->create();
-        /** @var Subscription $subscription */
-        $plan->features()->saveMany([
-            new Feature([
-                'name' => 'Limited feature',
-                'code' => 'feature.limited',
-                'description' => 'Some limited feature',
-                'type' => 'limit',
-                'limit' => 10,
-            ]),
-            new Feature([
-                'name' => 'Feature Feature',
-                'code' => 'feature.feature',
-                'description' => 'Some feature feature',
-                'type' => 'feature',
-            ]),
-            new Feature([
-                'name' => 'Unlimited feature',
-                'code' => 'feature.unlimited',
-                'description' => 'Some unlimited feature',
-                'type' => 'limit',
-                'limit' => 0,
-            ]),
-            new Feature([
-                'name' => 'Limited feature',
-                'code' => 'feature.limited.scoped',
-                'description' => 'Some limited feature with model scope',
-                'type' => 'limit',
-                'limit' => 2,
-            ]),
-        ]);
-        $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
-        $subscription->consumeFeature('feature.limited.scoped', 1, 'some-model', 3);
-        $this->assertEquals([
-            [
-                'code' => 'feature.limited',
-                'type' => 'limited',
-                'usage' => 0,
-                'remaining' => 10
-            ],
-            [
-                'code' => 'feature.limited.scoped',
-                'type' => 'limited',
-                'usage' => [
-                    [
-                        'model_type' => 'some-model',
-                        'model_id' => 3,
-                        'usage' => 1,
-                        'remaining' => 1
-                    ]
-                ],
-                'remaining' => null
-            ],
-            [
-                'code' => 'feature.unlimited',
-                'type' => 'unlimited',
-                'usage' => 0,
-            ],
-        ], $subscription->feature_usage_stats);
-    }
-
     /** @test */
     public function it_know_its_feature_authorizations(): void
     {
@@ -420,5 +311,38 @@ class SubscriptionTest extends TestCase
         ]);
         $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
         $this->assertEquals(['feature.feature'], $subscription->feature_authorizations);
+    }
+
+    /** @test
+     * @throws FeatureNotFoundException
+     */
+    public function can_get_a_subscription_feature_by_code(): void
+    {
+        $plan = factory(Plan::class)->create();
+        /** @var Subscription $subscription */
+        $plan->features()->saveMany([
+            new Feature([
+                'name' => 'Limited feature',
+                'code' => 'feature.limited',
+                'description' => 'Some limited feature',
+                'type' => 'limit',
+                'limit' => 10,
+            ]),
+            new Feature([
+                'name' => 'Feature Feature',
+                'code' => 'feature.feature',
+                'description' => 'Some feature feature',
+                'type' => 'feature',
+            ]),
+            new Feature([
+                'name' => 'Unlimited feature',
+                'code' => 'feature.unlimited',
+                'description' => 'Some unlimited feature',
+                'type' => 'limit',
+                'limit' => 0,
+            ]),
+        ]);
+        $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
+        $this->assertEquals('Unlimited feature', $subscription->getFeatureByCode('feature.unlimited')->name);
     }
 }
