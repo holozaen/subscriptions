@@ -145,5 +145,13 @@ class HasRestrictedUsagesTraitTest extends TestCase
                 'remaining' => 9997
             ],
         ], $firstPost->getUsages());
+
+        $this->assertEquals([
+            'images' =>  (object)[
+                'used' => 2,
+                'available' => 9999,
+                'remaining' => 9997
+            ],
+        ], $firstPost->usages);
     }
 }

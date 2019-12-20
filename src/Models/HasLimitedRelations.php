@@ -47,6 +47,12 @@ trait HasLimitedRelations
         return $usagesArray;
     }
 
+    /** @throws FeatureException */
+    public function getUsagesAttribute(): ?array
+    {
+        return $this->getUsages();
+    }
+
     private function getFeatureAvailabilityForRelation(string $relation): int
     {
         /** @var Subscription $subscription */
