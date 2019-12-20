@@ -55,11 +55,10 @@ class HasRestrictedUsagesTraitTest extends TestCase
             ])
         ]);
         factory(Post::class)->create(['user_id' => $this->user->id]);
-        $this->assertEquals([
-            'used' => 1,
-            'available' => 1,
-            'remaining' => 0
-        ], $this->user->getUsageFor('posts'));
+        $usage = $this->user->getUsageFor('posts');
+        $this->assertEquals(1, $usage->used);
+        $this->assertEquals(1, $usage->available);
+        $this->assertEquals(0, $usage->remaining);
     }
 
     /** @test
@@ -79,11 +78,10 @@ class HasRestrictedUsagesTraitTest extends TestCase
             ]),
         ]);
         factory(Image::class)->create(['imageable_id' => $this->user->id, 'imageable_type' => User::class]);
-        $this->assertEquals([
-            'used' => 1,
-            'available' => 9999,
-            'remaining' => 9998
-        ], $this->user->getUsageFor('images'));
+        $usage = $this->user->getUsageFor('images');
+        $this->assertEquals(1, $usage->used);
+        $this->assertEquals(9999, $usage->available);
+        $this->assertEquals(9998, $usage->remaining);
     }
 
     /**
@@ -128,12 +126,12 @@ class HasRestrictedUsagesTraitTest extends TestCase
         factory(Image::class)->create(['imageable_id' => $firstPost->id, 'imageable_type' => Post::class]);
         factory(Image::class)->create(['imageable_id' => $firstPost->id, 'imageable_type' => Post::class]);
         $this->assertEquals([
-            'images' =>  [
+            'images' =>  (object)[
                 'used' => 2,
                 'available' => 2,
                 'remaining' => 0
             ],
-            'posts' => [
+            'posts' => (object)[
                 'used' => 2,
                 'available' => 1,
                 'remaining' => -1
@@ -141,7 +139,7 @@ class HasRestrictedUsagesTraitTest extends TestCase
         ], $this->user->getUsages());
 
         $this->assertEquals([
-            'images' =>  [
+            'images' =>  (object)[
                 'used' => 2,
                 'available' => 9999,
                 'remaining' => 9997

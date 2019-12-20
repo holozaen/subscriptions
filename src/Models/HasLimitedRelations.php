@@ -5,22 +5,23 @@ namespace OnlineVerkaufen\Subscriptions\Models;
 
 
 use OnlineVerkaufen\Subscriptions\Exception\FeatureException;
+use stdClass;
 
 trait HasLimitedRelations
 {
     /**
      * @param string $relation
-     * @return array
+     * @return stdClass
      * @throws FeatureException
      */
-    public function getUsageFor(string $relation): array
+    public function getUsageFor(string $relation): stdClass
     {
         if ($this->$relation) {
             $usedItems = count($this->$relation);
             $availableItems = $this->getFeatureAvailabilityForRelation($relation);
             $remainingItems = $availableItems - $usedItems;
 
-            return [
+            return (object)[
                 'used' => $usedItems,
                 'available' => $availableItems,
                 'remaining' => $remainingItems
