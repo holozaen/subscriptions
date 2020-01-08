@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int position
  * @property string name
  * @property string description
+ * @property string restricted_model
+ * @property string restricted_relation
  *
  * @method static Builder code
  * @method static Builder feature

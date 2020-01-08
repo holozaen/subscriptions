@@ -23,6 +23,7 @@ use OnlineVerkaufen\Subscriptions\Models\PlanTypeDateProcessors\Yearly;
  * @property int duration
  * @property array plan_type_definition
  * @property string plan_type_date_processor
+ * @property mixed features
  *
  * @method static Builder active
  * @method static Builder disabled
