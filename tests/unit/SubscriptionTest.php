@@ -324,6 +324,8 @@ class SubscriptionTest extends TestCase
                 'code' => 'feature.limited',
                 'description' => 'Some limited feature',
                 'type' => 'limit',
+                'restricted_model' => 'modelA',
+                'restricted_relation' => 'relationA',
                 'limit' => 10,
             ]),
             new Feature([
@@ -338,10 +340,23 @@ class SubscriptionTest extends TestCase
                 'description' => 'Some unlimited feature',
                 'type' => 'limit',
                 'limit' => 0,
+                'restricted_model' => 'modelB',
+                'restricted_relation' => 'relationB'
             ]),
         ]);
         $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
-        $this->assertEquals(['feature.limited' => 10, 'feature.unlimited' => 0], $subscription->limits);
+        $limits = $subscription->limits;
+        $this->assertCount(2, $limits);
+        $this->assertEquals((object)[
+            'available' => 10,
+            'restricted_model' => 'modelA',
+            'restricted_relation' => 'relationA'
+        ], $limits['feature.limited']);
+        $this->assertEquals((object)[
+            'available' => 0,
+            'restricted_model' => 'modelB',
+            'restricted_relation' => 'relationB'
+        ], $limits['feature.unlimited']);
     }
 
     /** @test
