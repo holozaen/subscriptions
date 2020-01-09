@@ -400,7 +400,8 @@ class Subscription extends Model
         $limits = [];
         /** @noinspection PhpUndefinedMethodInspection */
         foreach ($this->features()->limitType()->get() as $feature) {
-            $limits[$feature->code] = (object)[
+            $limits[] = (object)[
+                'code' => $feature->code,
                 'restricted_model' => $feature->restricted_model,
                 'restricted_relation' => $feature->restricted_relation,
                 'available' => $feature->limit

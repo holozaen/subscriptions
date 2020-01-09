@@ -348,15 +348,17 @@ class SubscriptionTest extends TestCase
         $limits = $subscription->limits;
         $this->assertCount(2, $limits);
         $this->assertEquals((object)[
+            'code' => 'feature.limited',
             'available' => 10,
             'restricted_model' => 'modelA',
             'restricted_relation' => 'relationA'
-        ], $limits['feature.limited']);
+        ], $limits[0]);
         $this->assertEquals((object)[
+            'code' => 'feature.unlimited',
             'available' => 0,
             'restricted_model' => 'modelB',
             'restricted_relation' => 'relationB'
-        ], $limits['feature.unlimited']);
+        ], $limits[1]);
     }
 
     /** @test
