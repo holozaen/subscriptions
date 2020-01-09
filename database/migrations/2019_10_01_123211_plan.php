@@ -6,8 +6,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
 
-/** @noinspection AutoloadingIssuesInspection */
-
 class Plan extends Migration
 {
     /**
