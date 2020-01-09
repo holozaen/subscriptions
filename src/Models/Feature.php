@@ -66,7 +66,7 @@ class Feature extends Model
         return $query->where('type', self::TYPE_FEATURE);
     }
 
-    public function scopeLimit($query): Builder
+    public function scopeLimitType($query): Builder
     {
         /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_LIMIT);

@@ -395,6 +395,17 @@ class Subscription extends Model
         return $authorizations;
     }
 
+    public function getLimitsAttribute(): array
+    {
+        $limits = [];
+        /** @noinspection PhpUndefinedMethodInspection */
+        foreach ($this->features()->limitType()->get() as $feature) {
+            $limits[$feature->code] = $feature->limit;
+        }
+
+        return $limits;
+    }
+
     public function getLimitForClassRelation(string $base_class_name, string $relation): ?int
     {
         $feature = $this->plan->features()

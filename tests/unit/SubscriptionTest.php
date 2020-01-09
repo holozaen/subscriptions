@@ -313,6 +313,37 @@ class SubscriptionTest extends TestCase
         $this->assertEquals(['feature.feature'], $subscription->feature_authorizations);
     }
 
+    /** @test */
+    public function it_know_its_limits(): void
+    {
+        $plan = factory(Plan::class)->create();
+        /** @var Subscription $subscription */
+        $plan->features()->saveMany([
+            new Feature([
+                'name' => 'Limited feature',
+                'code' => 'feature.limited',
+                'description' => 'Some limited feature',
+                'type' => 'limit',
+                'limit' => 10,
+            ]),
+            new Feature([
+                'name' => 'Feature Feature',
+                'code' => 'feature.feature',
+                'description' => 'Some feature feature',
+                'type' => 'feature',
+            ]),
+            new Feature([
+                'name' => 'Unlimited feature',
+                'code' => 'feature.unlimited',
+                'description' => 'Some unlimited feature',
+                'type' => 'limit',
+                'limit' => 0,
+            ]),
+        ]);
+        $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
+        $this->assertEquals(['feature.limited' => 10, 'feature.unlimited' => 0], $subscription->limits);
+    }
+
     /** @test
      * @throws FeatureNotFoundException
      */
