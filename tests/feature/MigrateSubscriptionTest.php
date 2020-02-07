@@ -52,9 +52,7 @@ class MigrateSubscriptionTest extends TestCase
         $subscription = $this->user->active_subscription;
         $this->assertEquals('monthly', $subscription->plan->type);
         $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
-        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertNotDispatched(NewSubscription::class);
-        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionMigrated::class);
     }
 
@@ -99,7 +97,6 @@ class MigrateSubscriptionTest extends TestCase
 
         $activeSubscription = $this->user->active_subscription;
         $this->assertTrue($activeSubscription->is($newSubscription));
-        /** @noinspection PhpUndefinedMethodInspection */
         Event::assertDispatched(SubscriptionMigrated::class);
     }
 
@@ -119,7 +116,6 @@ class MigrateSubscriptionTest extends TestCase
             $this->user->migrateSubscriptionTo($durationPlan, false, true, 0);
         } catch (SubscriptionException $e) {
             $this->assertTrue($activeSubscription->is($oldSubscription));
-            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionMigrated::class);
             return;
         }
@@ -146,7 +142,6 @@ class MigrateSubscriptionTest extends TestCase
         } catch (SubscriptionException $e) {
             $activeSubscription = $this->user->active_subscription;
             $this->assertTrue($activeSubscription->is($activeSubscription));
-            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionMigrated::class);
             return;
         }
@@ -166,11 +161,32 @@ class MigrateSubscriptionTest extends TestCase
             $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
         } catch (SubscriptionException $e) {
             $this->assertFalse($this->user->hasActiveSubscription());
-            /** @noinspection PhpUndefinedMethodInspection */
             Event::assertNotDispatched(SubscriptionMigrated::class);
             return;
         }
 
         $this->fail();
     }
+
+    /** @test *
+     * @throws SubscriptionException
+     */
+    public function migrations_to_free_plans_are_marked_as_paid(): void
+    {
+        $this->user->subscribeTo($this->plan, false,  30);
+        $oldsubscription = $this->user->active_subscription;
+        $this->assertEquals('yearly', $oldsubscription->plan->type);
+        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create(['price' => 0]);
+
+        Event::fake();
+        $this->user->migrateSubscriptionTo($monthlyPlan, true, true);
+
+        $subscription = $this->user->active_subscription;
+        $this->assertEquals('monthly', $subscription->plan->type);
+        $this->assertTrue($subscription->is_paid);
+        $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
+        Event::assertNotDispatched(NewSubscription::class);
+        Event::assertDispatched(SubscriptionMigrated::class);
+    }
+
 }
