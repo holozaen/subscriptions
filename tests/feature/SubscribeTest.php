@@ -41,6 +41,7 @@ class SubscribeTest extends TestCase
         /** @var Subscription $subscription */
         $subscription = $this->user->active_or_last_subscription;
         $this->assertEqualsWithDelta(Carbon::now(), $subscription->starts_at, 1);
+        $this->assertEqualsWithDelta(Carbon::now(), $subscription->test_ends_at, 1);
         $this->assertEqualsWithDelta(Carbon::now()->addYear()->endOfDay(), $subscription->expires_at, 1);
         $this->assertTrue($plan->is($subscription->plan));
         $this->assertEquals($plan->price, $subscription->price);

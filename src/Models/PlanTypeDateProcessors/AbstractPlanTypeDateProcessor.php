@@ -59,7 +59,7 @@ abstract class AbstractPlanTypeDateProcessor
     private function applyGeneralTestEndDateCorrections(): void
     {
         if (!$this->testingDays || $this->testingDays === 0) {
-            $this->testEndsDate = null;
+            $this->testEndsDate = Carbon::now();
         }
         if ($this->testingDays && $this->testingDays > 0) {
             $this->testEndsDate = $this->testEndsDate->addDays($this->testingDays);

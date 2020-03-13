@@ -13,8 +13,11 @@ $factory->define(Subscription::class, static function (\Faker\Generator $faker) 
         'price' => $faker->randomElement([9900,29900,59900]),
         'currency' => 'CHF',
         'is_recurring' => $faker->randomElement([true,false]),
-        'payment_tolerance_ends_at' => Carbon::now()->addDay()->endOfDay()
-    ];
+        'payment_tolerance_ends_at' => Carbon::now(),
+        'starts_at' => Carbon::now(),
+        'expires_at' => Carbon::parse('+10 days'),
+        'test_ends_at' => Carbon::now()
+ ];
 });
 
 $factory->state(Subscription::class, 'paid', static function() {

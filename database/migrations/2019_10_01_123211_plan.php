@@ -1,6 +1,5 @@
 <?php
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -62,12 +61,12 @@ class Plan extends Migration
 
             $table->boolean('is_recurring')->default(true);
 
-            $table->timestamp('test_ends_at')->nullable()->default(Carbon::now());
+            $table->timestamp('test_ends_at');
             $table->timestamp('payment_tolerance_ends_at');
             $table->timestamp('paid_at')->nullable();
-            $table->timestamp('starts_at')->nullable();
+            $table->timestamp('starts_at');
             $table->timestamp('renewed_at')->nullable();
-            $table->timestamp('expires_at')->nullable();
+            $table->timestamp('expires_at');
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamp('refunded_at')->nullable();
 
