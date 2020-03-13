@@ -12,5 +12,5 @@ return [
         'feature' => Feature::class,
     ],
 
-    'paymentToleranceDays' => env('SUBSCRIPTIONS_PAYMENT_TOLERANCE_DAYS', 0)
+    'paymentToleranceDays' => env('SUBSCRIPTIONS_PAYMENT_TOLERANCE_DAYS', 1)
 ];

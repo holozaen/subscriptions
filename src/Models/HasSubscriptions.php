@@ -141,6 +141,7 @@ trait HasSubscriptions
                 'test_ends_at' => $dateProcessor->getTestEndsDate(),
                 'starts_at' => $dateProcessor->getStartDate(),
                 'expires_at' => $dateProcessor->getExpirationDate(),
+                'payment_tolerance_ends_at' => config('subscriptions.paymentToleranceDays') > 0 ? Carbon::now()->addDays(config('subscriptions.paymentToleranceDays'))->endOfDay() : Carbon::now(),
                 'cancelled_at' => null,
                 'paid_at' => $plan->price === 0 ? Carbon::now() : null,
                 'price' => $plan->price,

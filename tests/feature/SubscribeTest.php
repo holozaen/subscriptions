@@ -33,6 +33,7 @@ class SubscribeTest extends TestCase
      */
     public function can_subscribe_to_a_recurring_yearly_plan(): void
     {
+        config(['subscriptions.paymentToleranceDays' => 30]);
         Event::fake();
         $plan = factory(Plan::class)->states(['active', 'yearly'])->create();
         $this->user->subscribeTo($plan);
@@ -45,13 +46,13 @@ class SubscribeTest extends TestCase
         $this->assertEquals($plan->price, $subscription->price);
         $this->assertEquals($plan->currency, $subscription->currency);
         $this->assertEquals(Carbon::now()->addYear()->diffInDays(Carbon::now()), $subscription->remaining_days);
-
+        $this->assertEqualsWithDelta(Carbon::now()->addDays(30)->endOfDay(), $subscription->payment_tolerance_ends_at, 1);
         $this->assertTrue($subscription->is_recurring);
         $this->assertNull($subscription->refunded_at);
         $this->assertNull($subscription->cancelled_at);
         $this->assertFalse($subscription->is_testing);
         $this->assertFalse($subscription->is_paid);
-        $this->assertFalse($subscription->is_active);
+        $this->assertTrue($subscription->is_active);
         Event::assertDispatched(NewSubscription::class);
 
         $subscription->markAsPaid();

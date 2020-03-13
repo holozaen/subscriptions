@@ -13,6 +13,7 @@ $factory->define(Subscription::class, static function (\Faker\Generator $faker) 
         'price' => $faker->randomElement([9900,29900,59900]),
         'currency' => 'CHF',
         'is_recurring' => $faker->randomElement([true,false]),
+        'payment_tolerance_ends_at' => Carbon::now()->addDay()->endOfDay()
     ];
 });
 
