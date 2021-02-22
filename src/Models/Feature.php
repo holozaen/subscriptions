@@ -34,7 +34,7 @@ class Feature extends Model
     protected $table = 'plan_features';
     protected $guarded = [];
     protected $casts = [
-      'limit' => 'Integer'
+      'limit' => 'int'
     ];
 
     public function plan(): BelongsTo
@@ -44,31 +44,26 @@ class Feature extends Model
 
     public function scopeCode($query, string $code): Builder
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('code', $code);
     }
 
     public function scopeLimited($query): Builder
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_LIMIT)->where('limit', '>', 0);
     }
 
     public function scopeUnlimited($query): Builder
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_LIMIT)->where('limit', '=', 0);
     }
 
     public function scopeFeature($query): Builder
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_FEATURE);
     }
 
     public function scopeLimitType($query): Builder
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('type', self::TYPE_LIMIT);
     }
 
