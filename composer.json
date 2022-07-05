@@ -13,7 +13,7 @@
   ],
   "require": {
     "doctrine/dbal": "^2.0.0",
-    "laravel/framework": ">=6.0.0 <9"
+    "laravel/framework": ">=6.0.0 <10"
   },
   "require-dev": {
     "roave/security-advisories": "dev-master",
@@ -43,5 +43,22 @@
   },
   "config": {
     "sort-packages": true
+  },
+  "application": "",
+  "boundedContext": "",
+  "boundedContextName": "",
+  "core": {
+    "language": "csharp"
+  },
+  "interaction": [],
+  "resources": {
+    "readModels": {
+      "production": "",
+      "development": ""
+    },
+    "eventStore": {
+      "production": "",
+      "development": ""
+    }
   }
 }
