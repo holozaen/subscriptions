@@ -46,7 +46,7 @@ class SubscribeTest extends TestCase
         $this->assertTrue($plan->is($subscription->plan));
         $this->assertEquals($plan->price, $subscription->price);
         $this->assertEquals($plan->currency, $subscription->currency);
-        $this->assertEquals(Carbon::now()->addYear()->diffInDays(Carbon::now()), $subscription->remaining_days);
+        $this->assertEqualsWithDelta(Carbon::now()->addYear()->diffInDays(Carbon::now()), $subscription->remaining_days, 1);
         $this->assertEqualsWithDelta(Carbon::now()->addDays(30)->endOfDay(), $subscription->payment_tolerance_ends_at, 1);
         $this->assertTrue($subscription->is_recurring);
         $this->assertNull($subscription->refunded_at);

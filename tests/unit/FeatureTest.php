@@ -91,4 +91,29 @@ class FeatureTest extends TestCase
         $this->assertFalse($unlimitedFeature->isLimited());
         $this->assertTrue($unlimitedFeature->isUnlimited());
     }
+
+    /** @test */
+    public function a_plan_also_knows_its_features(): void
+    {
+        $plan = factory(Plan::class)->create();
+        $plan->features()->saveMany([
+            new Feature([
+                'name' => 'Limited feature',
+                'code' => 'feature.limited',
+                'description' => 'Some limited feature',
+                'type' => 'limit',
+                'limit' => 10,
+            ]),
+            new Feature([
+                'name' => 'Unlimited feature',
+                'code' => 'feature.feature',
+                'description' => 'Some unlimited feature',
+                'type' => 'feature',
+                'limit' => 20,
+            ])
+        ]);
+        $this->assertTrue($plan->hasFeature('feature.limited'));
+        $this->assertTrue($plan->hasFeature('feature.feature'));
+        $this->assertFalse($plan->hasFeature('some.feature.that.does.not.exist'));
+    }
 }

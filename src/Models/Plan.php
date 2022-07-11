@@ -76,6 +76,13 @@ class Plan extends Model
         return $this->hasMany(config('subscriptions.models.subscription'), 'plan_id');
     }
 
+    public function hasFeature(string $code): bool
+    {
+        /** @noinspection PhpUndefinedMethodInspection */
+        if (count($this->features()->code($code)->get())) return true;
+        return false;
+    }
+
     public function getPlanTypeDefinitionAttribute(): array
     {
         return $this::getPlanTypeDefinitionForCode($this->type);
