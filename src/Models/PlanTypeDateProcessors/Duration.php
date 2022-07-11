@@ -9,10 +9,7 @@ use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 
 class Duration extends AbstractPlanTypeDateProcessor
 {
-    /**
-     * @var null | int
-     */
-    private $duration;
+    private int|null $duration;
 
     public function __construct($testingDays = null, $startAt = null, $duration = null)
     {
@@ -29,7 +26,6 @@ class Duration extends AbstractPlanTypeDateProcessor
         if ($this->duration < 1) {
             throw new SubscriptionException('duration must be a positive integer');
         }
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->expirationDate->addDays($this->duration);
     }
 }

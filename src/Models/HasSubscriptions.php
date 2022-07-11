@@ -5,6 +5,7 @@ namespace OnlineVerkaufen\Subscriptions\Models;
 use Carbon\Carbon;
 use Exception;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use OnlineVerkaufen\Subscriptions\Events\DispatchesSubscriptionEvents;
 use OnlineVerkaufen\Subscriptions\Events\NewSubscription;
@@ -30,20 +31,19 @@ trait HasSubscriptions
         return $this->subscriptions()->active()->first();
     }
 
+    /** @noinspection PhpUnused */
     public function getActiveSubscriptionAttribute()
     {
         return $this->activeSubscription();
     }
 
-    /**
-     * @return Subscription | null
-     */
     private function upcomingSubscription(): ?Subscription
     {
         /** @noinspection PhpUndefinedMethodInspection */
         return $this->subscriptions()->upcoming()->first();
     }
 
+    /** @noinspection PhpUnused */
     public function getUpcomingSubscriptionAttribute(): ?Subscription
     {
         return $this->upcomingSubscription();
@@ -58,11 +58,16 @@ trait HasSubscriptions
         return $this->subscriptions()->latest('created_at')->first();
     }
 
+    /** @noinspection PhpUnused */
     public function getLatestSubscriptionAttribute(): ?Subscription
     {
         return $this->latestSubscription();
     }
 
+    /**
+     * @return Model|MorphMany|object|null
+     * @noinspection PhpMissingReturnTypeInspection
+     */
     private function activeOrLastSubscription()
     {
         if ($this->hasActiveSubscription()) {
@@ -72,6 +77,7 @@ trait HasSubscriptions
         return $this->subscriptions()->latest('starts_at')->first();
     }
 
+    /** @noinspection PhpUnused */
     public function getActiveOrLastSubscriptionAttribute(): ?Subscription
     {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
@@ -85,7 +91,7 @@ trait HasSubscriptions
      */
     public function hasActiveSubscription(): bool
     {
-        return $this->activeSubscription() ? true : false;
+        return (bool)$this->activeSubscription();
     }
 
     public function hasUnpaidSubscriptions(): bool
@@ -96,7 +102,7 @@ trait HasSubscriptions
 
     public function hasUpcomingSubscription(): bool
     {
-        return $this->upcomingSubscription() ? true : false;
+        return (bool)$this->upcomingSubscription();
     }
 
     /**
@@ -104,15 +110,15 @@ trait HasSubscriptions
      * @param bool $isRecurring
      * @param int $testingDays
      * @param int $duration
-     * @param mixed | null $startsAt
+     * @param string | null $startsAt
      * @return Subscription
      * @throws SubscriptionException
      */
-    public function subscribeTo(Plan $plan,
-                                bool $isRecurring = true,
-                                int $testingDays = 0,
-                                int $duration = 30,
-                                $startsAt = null): Subscription
+    public function subscribeTo(Plan   $plan,
+                                bool   $isRecurring = true,
+                                int    $testingDays = 0,
+                                int    $duration = 30,
+                                ?string $startsAt = null): Subscription
     {
         $subscriptionModel = config('subscriptions.models.subscription');
 
@@ -148,10 +154,10 @@ trait HasSubscriptions
                 'currency' => $plan->currency,
                 'is_recurring' => $isRecurring,
             ]));
-            if (false === $subscription || null === $subscription) {
+            if (null === $subscription) {
                 throw new SubscriptionException('could not attach subscription');
             }
-        } catch (Exception $ex) {
+        } catch (Exception) {
             throw new SubscriptionException('The subscription could not be saved');
         }
 
@@ -197,7 +203,7 @@ trait HasSubscriptions
             $this->resumeSubscriptionEventDispatcher();
             $this->dispatchSubscriptionEvent(new SubscriptionMigrated($previousSubscription->fresh(), $newSubscription));
             return $newSubscription;
-        } catch (Exception $e) {
+        } catch (Exception) {
             throw new SubscriptionException('could not migrate the subscription to a new plan');
         }
     }
@@ -320,7 +326,7 @@ trait HasSubscriptions
         }
 
         if (!$activeSubscription->is_expiring) {
-            throw new SubscriptionException('Renewing is not possible if subscription is expiring earlyer than tomorrow midnight');
+            throw new SubscriptionException('Renewing is not possible if subscription is expiring earlier than tomorrow midnight');
         }
 
         if (!$activeSubscription->is_recurring) {
@@ -333,7 +339,6 @@ trait HasSubscriptions
 
         $this->muteSubscriptionEventDispatcher();
 
-        /** @var Subscription $renewedSubscription */
         $renewedSubscription = $this->subscribeTo(
             $activeSubscription->plan,
             true,

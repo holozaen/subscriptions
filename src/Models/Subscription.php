@@ -328,7 +328,7 @@ class Subscription extends Model
 
         return $this->hasExpired() ?
             0:
-            (int) Carbon::now()->diffInDays(Carbon::parse($this->expires_at));
+            Carbon::now()->diffInDays(Carbon::parse($this->expires_at));
     }
 
     public function markAsPaid(): self
@@ -418,9 +418,6 @@ class Subscription extends Model
             ->where('restricted_model', $base_class_name)
             ->where('restricted_relation', $relation)
             ->first();
-        if (!$feature) {
-            return null;
-        }
-        return $feature->limit;
+        return $feature?->limit;
     }
 }

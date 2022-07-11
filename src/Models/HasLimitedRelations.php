@@ -47,7 +47,9 @@ trait HasLimitedRelations
         return $usagesArray;
     }
 
-    /** @throws FeatureException */
+    /** @throws FeatureException
+     * @noinspection PhpUnused
+     */
     public function getUsagesAttribute(): ?array
     {
         return $this->getUsages();
@@ -63,7 +65,7 @@ trait HasLimitedRelations
 
         $limit =  $subscription->getLimitForClassRelation(get_class($this), $relation);
 
-        if (!$limit || $limit === 0) { //unlimited
+        if (!$limit) { //unlimited
             return 9999;
         }
 
@@ -74,10 +76,7 @@ trait HasLimitedRelations
     {
         /** @var Subscription $subscription */
         $subscription = $this->getActiveSubscription();
-        if (!$subscription) {
-            return null;
-        }
-        return $subscription->features()
+        return $subscription?->features()
             ->where('type', Feature::TYPE_LIMIT)
             ->where('restricted_model', get_class($this))
             ->pluck('restricted_relation')->toArray();

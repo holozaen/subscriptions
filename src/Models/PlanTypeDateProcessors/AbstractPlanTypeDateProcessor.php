@@ -10,25 +10,15 @@ use Carbon\CarbonInterface;
 
 abstract class AbstractPlanTypeDateProcessor
 {
-    /** @var Carbon  */
-    protected $startDate;
+    protected Carbon|null $startDate;
 
-    /** @var Carbon  */
-    protected $expirationDate;
+    protected Carbon $expirationDate;
 
-    /** @var Carbon | null */
-    protected $testEndsDate;
+    protected ?Carbon $testEndsDate;
 
+    private int|null $testingDays;
 
-
-    /**
-     * @var null | int
-     */
-    private $testingDays;
-    /**
-     * @var null | string
-     */
-    private $startAt;
+    private string|null $startAt;
 
     public function __construct($testingDays = null, $startAt = null)
     {
@@ -58,7 +48,7 @@ abstract class AbstractPlanTypeDateProcessor
 
     private function applyGeneralTestEndDateCorrections(): void
     {
-        if (!$this->testingDays || $this->testingDays === 0) {
+        if (!$this->testingDays) {
             $this->testEndsDate = Carbon::now();
         }
         if ($this->testingDays && $this->testingDays > 0) {

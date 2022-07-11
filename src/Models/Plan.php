@@ -58,13 +58,11 @@ class Plan extends Model
 
     public function scopeActive($query): Builder
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('state', $this::STATE_ACTIVE);
     }
 
     public function scopeDisabled($query): Builder
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         return $query->where('state', $this::STATE_DISABLED);
     }
 
@@ -88,7 +86,7 @@ class Plan extends Model
         return $this::getPlanTypeDateProcessorClassForCode($this->type);
     }
 
-    public static function getPlanTypeDefinitionForCode(string $code): array
+    public static function getPlanTypeDefinitionForCode(string $code): ?array
     {
         $definitionArray = array_filter(self::PLAN_TYPES, static function ($type)  use ($code) { return $type['code'] === $code; });
         if (is_array($definitionArray)) {
@@ -97,7 +95,7 @@ class Plan extends Model
         return null;
     }
 
-    public static function getPlanTypeDateProcessorClassForCode(string $code): string
+    public static function getPlanTypeDateProcessorClassForCode(string $code): ?string
     {
         $typeDefinition = self::getPlanTypeDefinitionForCode($code);
         if (is_array($typeDefinition) && array_key_exists('class', $typeDefinition)) {
