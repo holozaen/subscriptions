@@ -418,6 +418,12 @@ class Subscription extends Model
             ->where('restricted_model', $base_class_name)
             ->where('restricted_relation', $relation)
             ->first();
+        if (!$feature) {
+            return null;
+        }
+        if ($feature->limit === 0) {
+            return null;
+        }
         return $feature?->limit;
     }
 }
