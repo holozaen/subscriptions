@@ -4,12 +4,14 @@
 namespace OnlineVerkaufen\Subscriptions\Test\Models;
 
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use OnlineVerkaufen\Subscriptions\Contracts\RelationsLimitable;
 use OnlineVerkaufen\Subscriptions\Models\HasLimitedRelations;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Test\Database\Factories\PostFactory;
 
 /**
  * @property User $user
@@ -17,7 +19,12 @@ use OnlineVerkaufen\Subscriptions\Models\Subscription;
 
 class Post extends Model implements RelationsLimitable
 {
-    use HasLimitedRelations;
+    use HasFactory, HasLimitedRelations;
+
+    protected static function newFactory(): PostFactory
+    {
+        return PostFactory::new();
+    }
 
     public function user(): BelongsTo
     {

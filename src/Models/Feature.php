@@ -5,8 +5,10 @@ namespace OnlineVerkaufen\Subscriptions\Models;
 
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OnlineVerkaufen\Subscriptions\Database\Factories\FeatureFactory;
 
 /**
  * @property int id
@@ -28,6 +30,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Feature extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory(): FeatureFactory
+    {
+        return FeatureFactory::new();
+    }
+
     public const TYPE_FEATURE = 'feature';
     public const TYPE_LIMIT = 'limit';
 

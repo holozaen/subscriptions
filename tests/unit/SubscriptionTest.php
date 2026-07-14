@@ -4,6 +4,7 @@ namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
@@ -14,13 +15,14 @@ use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class SubscriptionTest extends TestCase
 {
+    use RefreshDatabase;
 
     /** @test */
     public function it_knows_the_model_it_is_assigned_to(): void
     {
-      $user = factory(User::class)->create();
+      $user = User::factory()->create();
       /** @var Subscription $subscription */
-      $subscription = factory(Subscription::class)->create([
+      $subscription = Subscription::factory()->create([
           'model_type' => User::class,
           'model_id' => $user->id
       ]);
@@ -31,16 +33,16 @@ class SubscriptionTest extends TestCase
     public function can_get_all_active_subscriptions(): void
     {
         /** @var Subscription $activeSubscriptionA */
-        $activeSubscriptionA = factory(Subscription::class)->states(['active'])->create();
+        $activeSubscriptionA = Subscription::factory()->active()->create();
         /** @var Subscription $activeSubscriptionB */
-        $activeSubscriptionB = factory(Subscription::class)->states(['testing'])->create();
+        $activeSubscriptionB = Subscription::factory()->testing()->create();
         /** @var Subscription $activeSubscriptionC */
-        $activeSubscriptionC = factory(Subscription::class)->states(['tolerance'])->create();
+        $activeSubscriptionC = Subscription::factory()->tolerance()->create();
 
-        factory(Subscription::class)->states(['unpaid'])->create();
-        factory(Subscription::class)->states(['expired'])->create();
-        factory(Subscription::class)->states(['cancelled'])->create();
-        factory(Subscription::class)->states(['refunded'])->create();
+        Subscription::factory()->unpaid()->create();
+        Subscription::factory()->expired()->create();
+        Subscription::factory()->cancelled()->create();
+        Subscription::factory()->refunded()->create();
 
         $this->assertCount(3, Subscription::active()->get());
         $this->assertTrue($activeSubscriptionA->is(Subscription::active()->get()[0]));
@@ -55,13 +57,13 @@ class SubscriptionTest extends TestCase
     public function can_get_paid_subscriptions(): void
     {
         /** @var Subscription $paidSubscriptionA */
-        $paidSubscriptionA = factory(Subscription::class)->states(['paid'])->create();
+        $paidSubscriptionA = Subscription::factory()->paid()->create();
         /** @var Subscription $paidSubscriptionB */
-        $paidSubscriptionB = factory(Subscription::class)->states(['paid'])->create();
+        $paidSubscriptionB = Subscription::factory()->paid()->create();
         /** @var Subscription $unpaidSubscriptionC */
-        $unpaidSubscriptionC = factory(Subscription::class)->states(['unpaid'])->create();
+        $unpaidSubscriptionC = Subscription::factory()->unpaid()->create();
         /** @var Subscription $unpaidSubscriptionD */
-        $unpaidSubscriptionD = factory(Subscription::class)->states(['unpaid'])->create();
+        $unpaidSubscriptionD = Subscription::factory()->unpaid()->create();
         $this->assertCount(2, Subscription::paid()->get());
         $this->assertCount(2, Subscription::unpaid()->get());
         $this->assertTrue($paidSubscriptionA->is(Subscription::paid()->get()[0]));
@@ -78,13 +80,13 @@ class SubscriptionTest extends TestCase
     public function can_get_subscriptions_within_payment_tolerance(): void
     {
         /** @var Subscription $subscriptionWithinPaymentToleranceA */
-        $subscriptionWithinPaymentToleranceA = factory(Subscription::class)->states(['tolerance'])->create();
+        $subscriptionWithinPaymentToleranceA = Subscription::factory()->tolerance()->create();
         /** @var Subscription $paidSubscriptionWithinPaymentToleranceB */
-        $paidSubscriptionWithinPaymentToleranceB = factory(Subscription::class)->states(['paid'])->create(['payment_tolerance_ends_at' => Carbon::tomorrow()]);
+        $paidSubscriptionWithinPaymentToleranceB = Subscription::factory()->paid()->create(['payment_tolerance_ends_at' => Carbon::tomorrow()]);
         /** @var Subscription $paidSubscriptionBWithinPaymentTolerance */
-        $subscriptionOutsidePaymentToleranceC = factory(Subscription::class)->states(['unpaid'])->create(['payment_tolerance_ends_at' => Carbon::yesterday()]);
+        $subscriptionOutsidePaymentToleranceC = Subscription::factory()->unpaid()->create(['payment_tolerance_ends_at' => Carbon::yesterday()]);
         /** @var Subscription $paidSubscriptionBWithinPaymentTolerance */
-        $subscriptionOutsidePaymentToleranceD = factory(Subscription::class)->states(['paid'])->create(['payment_tolerance_ends_at' => Carbon::yesterday()]);
+        $subscriptionOutsidePaymentToleranceD = Subscription::factory()->paid()->create(['payment_tolerance_ends_at' => Carbon::yesterday()]);
         $this->assertCount(2, Subscription::withinPaymentTolerance()->get());
         $this->assertTrue($subscriptionWithinPaymentToleranceA->is(Subscription::withinPaymentTolerance()->get()[0]));
         $this->assertTrue($paidSubscriptionWithinPaymentToleranceB->is(Subscription::withinPaymentTolerance()->get()[1]));
@@ -97,10 +99,10 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function can_get_testing_subscriptions(): void
     {
-        $testingSubscriptionA = factory(Subscription::class)->states(['testing'])->create();
-        $testingSubscriptionB = factory(Subscription::class)->states(['testing'])->create();
-        $activeSubscriptionC = factory(Subscription::class)->states(['unpaid'])->create();
-        $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create();
+        $testingSubscriptionA = Subscription::factory()->testing()->create();
+        $testingSubscriptionB = Subscription::factory()->testing()->create();
+        $activeSubscriptionC = Subscription::factory()->unpaid()->create();
+        $activeSubscriptionD = Subscription::factory()->active()->create();
         $this->assertCount(2, Subscription::testing()->get());
         $this->assertTrue($testingSubscriptionA->is(Subscription::testing()->get()[0]));
         $this->assertTrue($testingSubscriptionB->is(Subscription::testing()->get()[1]));
@@ -113,12 +115,12 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function can_get_upcoming_subscriptions_incl_testing(): void
     {
-        $upcomingSubscriptionA = factory(Subscription::class)->states(['upcoming'])->create();
-        $upcomingSubscriptionB = factory(Subscription::class)->states(['upcoming'])->create();
-        $activeSubscriptionC = factory(Subscription::class)->states(['unpaid'])->create();
-        $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create();
-        $testingSubscriptionE = factory(Subscription::class)->states(['testing'])->create();
-        $testingSubscriptionF = factory(Subscription::class)->states(['testing'])->create();
+        $upcomingSubscriptionA = Subscription::factory()->upcoming()->create();
+        $upcomingSubscriptionB = Subscription::factory()->upcoming()->create();
+        $activeSubscriptionC = Subscription::factory()->unpaid()->create();
+        $activeSubscriptionD = Subscription::factory()->active()->create();
+        $testingSubscriptionE = Subscription::factory()->testing()->create();
+        $testingSubscriptionF = Subscription::factory()->testing()->create();
         $this->assertCount(4, Subscription::upcoming()->get());
         $this->assertTrue($upcomingSubscriptionA->is(Subscription::upcoming()->get()[0]));
         $this->assertTrue($upcomingSubscriptionB->is(Subscription::upcoming()->get()[1]));
@@ -135,10 +137,10 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function can_get_regular_subscriptions(): void
     {
-        factory(Subscription::class)->states(['testing'])->create();
-        factory(Subscription::class)->states(['testing'])->create();
-        factory(Subscription::class)->states(['unpaid'])->create();
-        $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create();
+        Subscription::factory()->testing()->create();
+        Subscription::factory()->testing()->create();
+        Subscription::factory()->unpaid()->create();
+        $activeSubscriptionD = Subscription::factory()->active()->create();
         $this->assertCount(1, Subscription::regular()->get());
         $this->assertTrue($activeSubscriptionD->is(Subscription::regular()->get()[0]));
     }
@@ -146,12 +148,12 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function can_get_expiring_subscriptions(): void
     {
-        $expiringSubscriptionA = factory(Subscription::class)->states(['expiring'])->create();
-        $expiringSubscriptionB = factory(Subscription::class)->states(['expiring'])->create();
-        $activeSubscriptionC = factory(Subscription::class)->states(['active'])->create([
+        $expiringSubscriptionA = Subscription::factory()->expiring()->create();
+        $expiringSubscriptionB = Subscription::factory()->expiring()->create();
+        $activeSubscriptionC = Subscription::factory()->active()->create([
             'expires_at' => Carbon::tomorrow()->endOfDay()->subSeconds(2)
         ]);
-        $activeSubscriptionD = factory(Subscription::class)->states(['active'])->create([
+        $activeSubscriptionD = Subscription::factory()->active()->create([
             'expires_at' => Carbon::tomorrow()->endOfDay()->addSeconds(2)
         ]);
         $this->assertCount(2, Subscription::expiring()->get());
@@ -166,10 +168,10 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function can_get_recurring_subscriptions(): void
     {
-        $recurringSubscriptionA = factory(Subscription::class)->states(['recurring'])->create();
-        $recurringSubscriptionB = factory(Subscription::class)->states(['recurring'])->create();
-        $nonRecurringSubscriptionC = factory(Subscription::class)->states(['nonrecurring'])->create();
-        $nonRecurringSubscriptionD = factory(Subscription::class)->states(['nonrecurring'])->create();
+        $recurringSubscriptionA = Subscription::factory()->recurring()->create();
+        $recurringSubscriptionB = Subscription::factory()->recurring()->create();
+        $nonRecurringSubscriptionC = Subscription::factory()->nonrecurring()->create();
+        $nonRecurringSubscriptionD = Subscription::factory()->nonrecurring()->create();
         $this->assertCount(2, Subscription::recurring()->get());
         $this->assertTrue($recurringSubscriptionA->is(Subscription::recurring()->get()[0]));
         $this->assertTrue($recurringSubscriptionB->is(Subscription::recurring()->get()[1]));
@@ -182,12 +184,12 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function can_get_the_correct_remaining_days_of_a_subscription(): void
     {
-        $subscription = factory(Subscription::class)->states('active')->create([
+        $subscription = Subscription::factory()->active()->create([
             'expires_at' => Carbon::parse('+ 3 weeks')
         ]);
-        $this->assertEquals(Carbon::parse('+ 3 weeks')->diffInDays(Carbon::now()), $subscription->remaining_days);
+        $this->assertEqualsWithDelta((int) Carbon::now()->diffInDays(Carbon::parse('+ 3 weeks')), $subscription->remaining_days, 1);
 
-        $expiredSubscription = factory(Subscription::class)->states('expired')->create();
+        $expiredSubscription = Subscription::factory()->expired()->create();
         $this->assertEquals(0, $expiredSubscription->remaining_days);
     }
 
@@ -195,7 +197,7 @@ class SubscriptionTest extends TestCase
     public function can_not_get_remaining_days_of_an_unstarted_subscription(): void
     {
         /** @var Subscription $subscription */
-        $subscription = factory(Subscription::class)->states('testing')->create([
+        $subscription = Subscription::factory()->testing()->create([
             'expires_at' => Carbon::parse('+ 8 weeks')
         ]);
 
@@ -217,7 +219,7 @@ class SubscriptionTest extends TestCase
     public function can_cancel_immediately(): void
     {
         /** @var Subscription $subscription */
-        $subscription = factory(Subscription::class)->states('active')->create();
+        $subscription = Subscription::factory()->active()->create();
         $this->assertTrue($subscription->is_active);
         $subscription->cancel(true);
         $this->assertFalse($subscription->is_active);
@@ -230,7 +232,7 @@ class SubscriptionTest extends TestCase
     public function can_cancel_at_the_end_of_the_subscription(): void
     {
         /** @var Subscription $subscription */
-        $subscription = factory(Subscription::class)->states('active')->create([
+        $subscription = Subscription::factory()->active()->create([
             'expires_at' => Carbon::parse('+ 1 week')
         ]);
         $this->assertTrue($subscription->is_active);
@@ -246,7 +248,7 @@ class SubscriptionTest extends TestCase
     public function can_not_cancel_an_already_cancelled_subscription(): void
     {
         /** @var Subscription $subscription */
-        $subscription = factory(Subscription::class)->states('cancelled')->create();
+        $subscription = Subscription::factory()->cancelled()->create();
         $this->assertTrue($subscription->is_cancelled);
         try {
             $subscription->cancel(true);
@@ -263,7 +265,7 @@ class SubscriptionTest extends TestCase
     public function can_still_cancel_a_subscription_that_is_pending_cancellation(): void
     {
         /** @var Subscription $subscription */
-        $subscription = factory(Subscription::class)->states('active')->create();
+        $subscription = Subscription::factory()->active()->create();
         /** @noinspection ArgumentEqualsDefaultValueInspection */
         $subscription->cancel(false);
 
@@ -278,14 +280,14 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function it_knows_whether_it_is_active(): void
     {
-        $subscription = factory(Subscription::class)->states('active')->create();
+        $subscription = Subscription::factory()->active()->create();
         $this->assertTrue($subscription->is_active);
     }
 
     /** @test */
     public function it_know_its_feature_authorizations(): void
     {
-        $plan = factory(Plan::class)->create();
+        $plan = Plan::factory()->create();
         /** @var Subscription $subscription */
         $plan->features()->saveMany([
             new Feature([
@@ -309,14 +311,14 @@ class SubscriptionTest extends TestCase
                 'limit' => 0,
             ]),
         ]);
-        $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
+        $subscription = Subscription::factory()->active()->create(['plan_id' => $plan->id]);
         $this->assertEquals(['feature.feature'], $subscription->feature_authorizations);
     }
 
     /** @test */
     public function it_know_its_limits(): void
     {
-        $plan = factory(Plan::class)->create();
+        $plan = Plan::factory()->create();
         /** @var Subscription $subscription */
         $plan->features()->saveMany([
             new Feature([
@@ -344,7 +346,7 @@ class SubscriptionTest extends TestCase
                 'restricted_relation' => 'relationB'
             ]),
         ]);
-        $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
+        $subscription = Subscription::factory()->active()->create(['plan_id' => $plan->id]);
         $limits = $subscription->limits;
         $this->assertCount(2, $limits);
         $this->assertEquals((object)[
@@ -366,7 +368,7 @@ class SubscriptionTest extends TestCase
      */
     public function can_get_a_subscription_feature_by_code(): void
     {
-        $plan = factory(Plan::class)->create();
+        $plan = Plan::factory()->create();
         /** @var Subscription $subscription */
         $plan->features()->saveMany([
             new Feature([
@@ -390,7 +392,7 @@ class SubscriptionTest extends TestCase
                 'limit' => 0,
             ]),
         ]);
-        $subscription = factory(Subscription::class)->states('active')->create(['plan_id' => $plan->id]);
+        $subscription = Subscription::factory()->active()->create(['plan_id' => $plan->id]);
         $this->assertEquals('Unlimited feature', $subscription->getFeatureByCode('feature.unlimited')->name);
     }
 }

@@ -31,8 +31,8 @@ class MigrateSubscriptionTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = factory(User::class)->create();
-        $this->plan = factory(Plan::class)->states(['active', 'yearly'])->create();
+        $this->user = User::factory()->create();
+        $this->plan = Plan::factory()->active()->yearly()->create();
     }
 
     /** @test *
@@ -43,7 +43,7 @@ class MigrateSubscriptionTest extends TestCase
         $this->user->subscribeTo($this->plan, false,  30);
         $oldsubscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $oldsubscription->plan->type);
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        $monthlyPlan = Plan::factory()->active()->monthly()->create();
 
         Event::fake();
         $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, true);
@@ -67,7 +67,7 @@ class MigrateSubscriptionTest extends TestCase
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         sleep(1);
 
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        $monthlyPlan = Plan::factory()->active()->monthly()->create();
         /** @noinspection ArgumentEqualsDefaultValueInspection */
         $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
         $newSubscription->markAsPaid();
@@ -90,7 +90,7 @@ class MigrateSubscriptionTest extends TestCase
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
-        $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
+        $durationPlan = Plan::factory()->active()->duration()->create();
         /** @noinspection ArgumentEqualsDefaultValueInspection */
         $newSubscription = $this->user->migrateSubscriptionTo($durationPlan, false, true, 30);
         $newSubscription->markAsPaid();
@@ -109,7 +109,7 @@ class MigrateSubscriptionTest extends TestCase
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $activeSubscription->plan->type);
-        $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
+        $durationPlan = Plan::factory()->active()->duration()->create();
         Event::fake();
 
         try{
@@ -133,7 +133,7 @@ class MigrateSubscriptionTest extends TestCase
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        $monthlyPlan = Plan::factory()->active()->monthly()->create();
         try {
             /** @noinspection ArgumentEqualsDefaultValueInspection */
             $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
@@ -152,8 +152,8 @@ class MigrateSubscriptionTest extends TestCase
     /** @test * */
     public function can_only_migrate_active_subscriptions(): void
     {
-        factory(Subscription::class)->states('expired');
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        Subscription::factory()->expired()->create(['model_type' => User::class, 'model_id' => $this->user->id]);
+        $monthlyPlan = Plan::factory()->active()->monthly()->create();
         Event::fake();
 
         try {
@@ -176,7 +176,7 @@ class MigrateSubscriptionTest extends TestCase
         $this->user->subscribeTo($this->plan, false,  30);
         $oldsubscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $oldsubscription->plan->type);
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create(['price' => 0]);
+        $monthlyPlan = Plan::factory()->active()->monthly()->create(['price' => 0]);
 
         Event::fake();
         $this->user->migrateSubscriptionTo($monthlyPlan, true, true);

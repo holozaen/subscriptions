@@ -12,23 +12,24 @@
     }
   ],
   "require": {
-    "php": ">=8.1",
-    "doctrine/dbal": "^2.0.0",
-    "laravel/framework": ">=6.0.0 <10"
+    "php": ">=8.2",
+    "doctrine/dbal": "^3.10",
+    "laravel/framework": "^12.61.1"
   },
   "require-dev": {
-    "laravel/legacy-factories": "^1.1",
-    "orchestra/testbench": "^6.0.0",
-    "phpunit/phpunit": "^8.0.0"
+    "orchestra/testbench": "^10.11",
+    "phpunit/phpunit": "^11.5.50"
   },
   "autoload": {
     "psr-4": {
-      "OnlineVerkaufen\\Subscriptions\\": "src"
+      "OnlineVerkaufen\\Subscriptions\\": "src",
+      "OnlineVerkaufen\\Subscriptions\\Database\\Factories\\": "database/factories"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "OnlineVerkaufen\\Subscriptions\\Test\\": "tests"
+      "OnlineVerkaufen\\Subscriptions\\Test\\": "tests",
+      "OnlineVerkaufen\\Subscriptions\\Test\\Database\\Factories\\": "tests/fixtures/factories"
     }
   },
   "scripts": {

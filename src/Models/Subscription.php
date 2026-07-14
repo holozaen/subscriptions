@@ -6,10 +6,12 @@ namespace OnlineVerkaufen\Subscriptions\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use OnlineVerkaufen\Subscriptions\Database\Factories\SubscriptionFactory;
 use OnlineVerkaufen\Subscriptions\Events\DispatchesSubscriptionEvents;
 use OnlineVerkaufen\Subscriptions\Events\SubscriptionPaymentSucceeded;
 use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
@@ -65,7 +67,12 @@ use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 
 class Subscription extends Model
 {
-    use DispatchesSubscriptionEvents;
+    use DispatchesSubscriptionEvents, HasFactory;
+
+    protected static function newFactory(): SubscriptionFactory
+    {
+        return SubscriptionFactory::new();
+    }
 
     protected $table = 'plan_subscriptions';
     protected $guarded = [];
@@ -81,6 +88,14 @@ class Subscription extends Model
     ];
     protected $casts = [
         'is_recurring' => 'boolean',
+        'paid_at' => 'datetime',
+        'payment_tolerance_ends_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'expires_at' => 'datetime',
+        'renewed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'refunded_at' => 'datetime',
+        'test_ends_at' => 'datetime',
     ];
 
     protected $appends = ['is_active'];

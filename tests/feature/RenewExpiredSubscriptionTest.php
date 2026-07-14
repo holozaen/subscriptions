@@ -31,8 +31,8 @@ class RenewExpiredSubscriptionTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = factory(User::class)->create();
-        $this->plan = factory(Plan::class)->states(['active', 'yearly'])->create();
+        $this->user = User::factory()->create();
+        $this->plan = Plan::factory()->active()->yearly()->create();
     }
 
     /** @test *
@@ -40,7 +40,7 @@ class RenewExpiredSubscriptionTest extends TestCase
      */
     public function can_renew_the_last_expired_subscription(): void
     {
-        factory(Subscription::class)->states('expired')->create([
+        Subscription::factory()->expired()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,
@@ -61,7 +61,7 @@ class RenewExpiredSubscriptionTest extends TestCase
     /** @test * */
     public function can_not_renew_active_subscriptions(): void
     {
-        $expiredSubscription = factory(Subscription::class)->states('active')->create([
+        $expiredSubscription = Subscription::factory()->active()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,
