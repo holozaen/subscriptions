@@ -4,6 +4,7 @@ namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use OnlineVerkaufen\Subscriptions\Exception\FeatureNotFoundException;
 use OnlineVerkaufen\Subscriptions\Exception\SubscriptionException;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
@@ -14,6 +15,7 @@ use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class SubscriptionTest extends TestCase
 {
+    use RefreshDatabase;
 
     /** @test */
     public function it_knows_the_model_it_is_assigned_to(): void

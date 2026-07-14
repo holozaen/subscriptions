@@ -3,6 +3,7 @@
 namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use OnlineVerkaufen\Subscriptions\Models\Feature;
 use OnlineVerkaufen\Subscriptions\Models\Plan;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
@@ -10,6 +11,8 @@ use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class FeatureTest extends TestCase
 {
+    use RefreshDatabase;
+
     /** @var Subscription */
     private $subscription;
 

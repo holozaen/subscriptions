@@ -4,12 +4,14 @@ namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
 
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
 use OnlineVerkaufen\Subscriptions\Test\Models\User;
 use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class HasSubscriptionsTraitTest extends TestCase
 {
+    use RefreshDatabase;
 
     /** @test */
     public function active_or_last_subscription_returns_active_subscription_if_exists(): void

@@ -2,12 +2,14 @@
 
 namespace OnlineVerkaufen\Subscriptions\Test\unit;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
 use OnlineVerkaufen\Subscriptions\Test\Models\User;
 use OnlineVerkaufen\Subscriptions\Test\TestCase;
 
 class RenewExpiringSubscriptionsCommandTest extends TestCase
 {
+    use RefreshDatabase;
 
     /** @test */
     public function it_calls_the_renew_expiring_subscription_command_for_each_expiring_subscription(): void
