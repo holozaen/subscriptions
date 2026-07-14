@@ -152,7 +152,7 @@ class MigrateSubscriptionTest extends TestCase
     /** @test * */
     public function can_only_migrate_active_subscriptions(): void
     {
-        Subscription::factory()->expired();
+        Subscription::factory()->expired()->create(['model_type' => User::class, 'model_id' => $this->user->id]);
         $monthlyPlan = Plan::factory()->active()->monthly()->create();
         Event::fake();
 
