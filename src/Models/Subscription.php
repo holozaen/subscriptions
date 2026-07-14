@@ -88,6 +88,14 @@ class Subscription extends Model
     ];
     protected $casts = [
         'is_recurring' => 'boolean',
+        'paid_at' => 'datetime',
+        'payment_tolerance_ends_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'expires_at' => 'datetime',
+        'renewed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'refunded_at' => 'datetime',
+        'test_ends_at' => 'datetime',
     ];
 
     protected $appends = ['is_active'];

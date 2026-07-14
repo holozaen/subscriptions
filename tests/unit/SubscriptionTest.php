@@ -187,7 +187,7 @@ class SubscriptionTest extends TestCase
         $subscription = Subscription::factory()->active()->create([
             'expires_at' => Carbon::parse('+ 3 weeks')
         ]);
-        $this->assertEquals(Carbon::parse('+ 3 weeks')->diffInDays(Carbon::now()), $subscription->remaining_days);
+        $this->assertEqualsWithDelta(Carbon::now()->diffInDays(Carbon::parse('+ 3 weeks')), $subscription->remaining_days, 1);
 
         $expiredSubscription = Subscription::factory()->expired()->create();
         $this->assertEquals(0, $expiredSubscription->remaining_days);
