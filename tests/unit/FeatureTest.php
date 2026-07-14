@@ -16,7 +16,7 @@ class FeatureTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $plan = factory(Plan::class)->create();
+        $plan = Plan::factory()->create();
         $plan->features()->saveMany([
             new Feature([
                 'name' => 'Limited feature',
@@ -39,7 +39,7 @@ class FeatureTest extends TestCase
                 'limit' => 0,
             ]),
         ]);
-        $this->subscription = factory(Subscription::class)->states(['active'])->create(['plan_id' => $plan->id]);
+        $this->subscription = Subscription::factory()->active()->create(['plan_id' => $plan->id]);
     }
 
     /** @test */
@@ -95,7 +95,7 @@ class FeatureTest extends TestCase
     /** @test */
     public function a_plan_also_knows_its_features(): void
     {
-        $plan = factory(Plan::class)->create();
+        $plan = Plan::factory()->create();
         $plan->features()->saveMany([
             new Feature([
                 'name' => 'Limited feature',

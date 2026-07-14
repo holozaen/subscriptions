@@ -22,8 +22,6 @@ abstract class TestCase extends OrchestraTestCase
         $this->loadLaravelMigrations(['--database' => 'sqlite']);
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/fixtures/migrations');
-        $this->withFactories(__DIR__.'/../database/factories');
-        $this->withFactories(__DIR__.'/fixtures/factories');
 
         $this->artisan('migrate', ['--database' => 'sqlite']);
     }

@@ -15,7 +15,7 @@ class HasSubscriptionsTraitTest extends TestCase
     public function active_or_last_subscription_returns_active_subscription_if_exists(): void
     {
         /** @var Subscription $subscription */
-        $subscription = factory(Subscription::class)->states('active')->create();
+        $subscription = Subscription::factory()->active()->create();
         /** @var User $user */
         $user = $subscription->model;
         /** @noinspection PhpUndefinedFieldInspection */
@@ -26,8 +26,8 @@ class HasSubscriptionsTraitTest extends TestCase
     public function active_or_last_subscription_returns_last_past_subscription_if_no_active_subscription_exists(): void
     {
         /** @var Subscription $subscription */
-        $latestExpiredSubscription = factory(Subscription::class)->states('expired')->create(['expires_at' => Carbon::parse('-1 weeks')]);
-        factory(Subscription::class)->states('expired')->create(['expires_at' => Carbon::parse('-2 weeks')]);
+        $latestExpiredSubscription = Subscription::factory()->expired()->create(['expires_at' => Carbon::parse('-1 weeks')]);
+        Subscription::factory()->expired()->create(['expires_at' => Carbon::parse('-2 weeks')]);
         /** @var User $user */
         $user = $latestExpiredSubscription->model;
         /** @noinspection PhpUndefinedFieldInspection */
@@ -38,11 +38,11 @@ class HasSubscriptionsTraitTest extends TestCase
     public function it_knows_whether_it_has_an_active_subscription(): void
     {
         /** @var Subscription $subscription */
-        $expiredSubscription = factory(Subscription::class)->states('expired')->create();
+        $expiredSubscription = Subscription::factory()->expired()->create();
         /** @var User $user */
         $user = $expiredSubscription->model;
         $this->assertFalse($user->hasActiveSubscription());
-        factory(Subscription::class)->states('active')->create([
+        Subscription::factory()->active()->create([
             'model_type' => User::class,
             'model_id' => $user->id
         ]);
@@ -53,11 +53,11 @@ class HasSubscriptionsTraitTest extends TestCase
     public function it_knows_whether_it_has_unpaid_subscriptions(): void
     {
         /** @var Subscription $subscription */
-        $paidSubscription = factory(Subscription::class)->states('active')->create();
+        $paidSubscription = Subscription::factory()->active()->create();
         /** @var User $user */
         $user = $paidSubscription->model;
         $this->assertFalse($user->hasUnpaidSubscriptions());
-        factory(Subscription::class)->states('unpaid')->create([
+        Subscription::factory()->unpaid()->create([
             'model_type' => User::class,
             'model_id' => $user->id
         ]);
@@ -68,11 +68,11 @@ class HasSubscriptionsTraitTest extends TestCase
     public function it_knows_whether_it_has_upcoming_subscriptions_including_current_testing(): void
     {
         /** @var Subscription $subscription */
-        $activeSubscription = factory(Subscription::class)->states('active')->create();
+        $activeSubscription = Subscription::factory()->active()->create();
         /** @var User $user */
         $user = $activeSubscription->model;
         $this->assertFalse($user->hasUpcomingSubscription());
-        factory(Subscription::class)->states('testing')->create([
+        Subscription::factory()->testing()->create([
             'model_type' => User::class,
             'model_id' => $user->id
         ]);

@@ -19,8 +19,8 @@ class PlanTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->activePlanA = factory(Plan::class)->states(['active'])->create();
-        $this->disabledPlanB = factory(Plan::class)->states(['disabled'])->create();
+        $this->activePlanA = Plan::factory()->active()->create();
+        $this->disabledPlanB = Plan::factory()->disabled()->create();
     }
 
     /** @test */
@@ -42,8 +42,8 @@ class PlanTest extends TestCase
     /** @test */
     public function can_get_the_subscriptions_to_a_plan(): void
     {
-        $plan = factory(Plan::class)->create();
-        $subscription = factory(Subscription::class)->create([
+        $plan = Plan::factory()->create();
+        $subscription = Subscription::factory()->create([
             'plan_id' => $plan->id
         ]);
         $this->assertCount(1, $plan->subscriptions);
@@ -54,7 +54,7 @@ class PlanTest extends TestCase
     public function can_get_the_plan_type_definition_for_a_plan(): void
     {
         /** @var Plan $plan */
-        $plan = factory(Plan::class)->state('yearly')->create();
+        $plan = Plan::factory()->yearly()->create();
         $this->assertEquals([
             'code' => 'yearly',
             'class' => Yearly::class
@@ -74,7 +74,7 @@ class PlanTest extends TestCase
     public function can_get_the_plan_type_date_processor_class_name(): void
     {
         /** @var Plan $plan */
-        $plan = factory(Plan::class)->state('yearly')->create();
+        $plan = Plan::factory()->yearly()->create();
         $this->assertEquals(Yearly::class, $plan->plan_type_date_processor);
     }
 

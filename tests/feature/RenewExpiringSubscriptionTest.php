@@ -30,8 +30,8 @@ class RenewExpiringSubscriptionTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = factory(User::class)->create();
-        $this->plan = factory(Plan::class)->states(['active', 'yearly'])->create();
+        $this->user = User::factory()->create();
+        $this->plan = Plan::factory()->active()->yearly()->create();
     }
 
     /** @test *
@@ -39,7 +39,7 @@ class RenewExpiringSubscriptionTest extends TestCase
      */
     public function can_renew_a_recurring_subscription_that_expires_tomorrow(): void
     {
-        $activeSubscription = factory(Subscription::class)->states(['active', 'recurring'])->create([
+        $activeSubscription = Subscription::factory()->active()->recurring()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,
@@ -62,7 +62,7 @@ class RenewExpiringSubscriptionTest extends TestCase
     /** @test * */
     public function cannot_renew_a_recurring_subscription_that_expires_later_than_tomorrow(): void
     {
-        $activeSubscription = factory(Subscription::class)->states(['active', 'recurring'])->create([
+        $activeSubscription = Subscription::factory()->active()->recurring()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,
@@ -85,7 +85,7 @@ class RenewExpiringSubscriptionTest extends TestCase
     /** @test * */
     public function cannot_renew_a_recurring_subscription_that_expires_earlier_than_tomorrow(): void
     {
-        $activeSubscription = factory(Subscription::class)->states(['active', 'recurring'])->create([
+        $activeSubscription = Subscription::factory()->active()->recurring()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,
@@ -108,7 +108,7 @@ class RenewExpiringSubscriptionTest extends TestCase
     /** @test * */
     public function cannot_renew_a_non_recurring_subscription(): void
     {
-        $activeSubscription = factory(Subscription::class)->states(['active', 'nonrecurring'])->create([
+        $activeSubscription = Subscription::factory()->active()->nonrecurring()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,
@@ -131,7 +131,7 @@ class RenewExpiringSubscriptionTest extends TestCase
     /** @test * */
     public function cannot_renew_an_unpaid_subscription(): void
     {
-        $activeSubscription = factory(Subscription::class)->states(['recurring', 'tolerance'])->create([
+        $activeSubscription = Subscription::factory()->recurring()->tolerance()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,
@@ -169,7 +169,7 @@ class RenewExpiringSubscriptionTest extends TestCase
     /** @test * */
     public function cannot_renew_a_subscription_pending_cancellation(): void
     {
-        $activeSubscription = factory(Subscription::class)->states(['active', 'recurring'])->create([
+        $activeSubscription = Subscription::factory()->active()->recurring()->create([
             'plan_id' => $this->plan->id,
             'model_type' => User::class,
             'model_id' => $this->user->id,

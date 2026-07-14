@@ -30,8 +30,8 @@ class CancelSubscriptionTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = factory(User::class)->create();
-        $this->plan = factory(Plan::class)->states(['active', 'yearly'])->create();
+        $this->user = User::factory()->create();
+        $this->plan = Plan::factory()->active()->yearly()->create();
     }
 
     /** @test *
@@ -73,7 +73,7 @@ class CancelSubscriptionTest extends TestCase
     /** @test * */
     public function can_only_cancel_active_subscriptions(): void
     {
-        $subscription = factory(Subscription::class)->states('expired')->create([
+        $subscription = Subscription::factory()->expired()->create([
             'model_type' => User::class,
             'model_id' => $this->user->id
         ]);
@@ -101,7 +101,7 @@ class CancelSubscriptionTest extends TestCase
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
-        $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
+        $durationPlan = Plan::factory()->active()->duration()->create();
         /** @noinspection ArgumentEqualsDefaultValueInspection */
         $newSubscription = $this->user->migrateSubscriptionTo($durationPlan, false, true, 30);
         $newSubscription->markAsPaid();
@@ -121,7 +121,7 @@ class CancelSubscriptionTest extends TestCase
         $oldSubscription->markAsPaid();
         $activeSubscription = $this->user->active_subscription;
         $this->assertEquals('yearly', $activeSubscription->plan->type);
-        $durationPlan = factory(Plan::class)->states('active', 'duration')->create();
+        $durationPlan = Plan::factory()->active()->duration()->create();
         Event::fake();
 
         try{
@@ -146,7 +146,7 @@ class CancelSubscriptionTest extends TestCase
         $this->assertEquals('yearly', $activeSubscription->plan->type);
         Event::fake();
 
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        $monthlyPlan = Plan::factory()->active()->monthly()->create();
         try {
             /** @noinspection ArgumentEqualsDefaultValueInspection */
             $newSubscription = $this->user->migrateSubscriptionTo($monthlyPlan, true, false);
@@ -166,8 +166,8 @@ class CancelSubscriptionTest extends TestCase
     /** @test * */
     public function can_only_migrate_active_subscriptions(): void
     {
-        factory(Subscription::class)->states('expired');
-        $monthlyPlan = factory(Plan::class)->states('active', 'monthly')->create();
+        Subscription::factory()->expired();
+        $monthlyPlan = Plan::factory()->active()->monthly()->create();
         Event::fake();
 
         try {

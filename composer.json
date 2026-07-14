@@ -22,12 +22,14 @@
   },
   "autoload": {
     "psr-4": {
-      "OnlineVerkaufen\\Subscriptions\\": "src"
+      "OnlineVerkaufen\\Subscriptions\\": "src",
+      "OnlineVerkaufen\\Subscriptions\\Database\\Factories\\": "database/factories"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "OnlineVerkaufen\\Subscriptions\\Test\\": "tests"
+      "OnlineVerkaufen\\Subscriptions\\Test\\": "tests",
+      "OnlineVerkaufen\\Subscriptions\\Test\\Database\\Factories\\": "tests/fixtures/factories"
     }
   },
   "scripts": {

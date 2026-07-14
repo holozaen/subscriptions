@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use OnlineVerkaufen\Subscriptions\Contracts\RelationsLimitable;
 use OnlineVerkaufen\Subscriptions\Models\HasLimitedRelations;
 use OnlineVerkaufen\Subscriptions\Models\Subscription;
+use OnlineVerkaufen\Subscriptions\Test\Database\Factories\PostFactory;
 
 /**
  * @property User $user
@@ -18,6 +19,11 @@ use OnlineVerkaufen\Subscriptions\Models\Subscription;
 class Post extends Model implements RelationsLimitable
 {
     use HasLimitedRelations;
+
+    protected static function newFactory(): PostFactory
+    {
+        return PostFactory::new();
+    }
 
     public function user(): BelongsTo
     {

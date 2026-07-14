@@ -30,8 +30,8 @@ class HasRestrictedUsagesTraitTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = factory(User::class)->create();
-        $this->plan = factory(Plan::class)->states(['active', 'yearly'])->create();
+        $this->user = User::factory()->create();
+        $this->plan = Plan::factory()->active()->yearly()->create();
 
         /** @noinspection PhpUnhandledExceptionInspection */
         $subscription = $this->user->subscribeTo($this->plan, true);
@@ -54,7 +54,7 @@ class HasRestrictedUsagesTraitTest extends TestCase
                 'limit' => 1,
             ])
         ]);
-        factory(Post::class)->create(['user_id' => $this->user->id]);
+        Post::factory()->create(['user_id' => $this->user->id]);
         $usage = $this->user->getUsageFor('posts');
         $this->assertEquals(1, $usage->used);
         $this->assertEquals(1, $usage->available);
@@ -77,7 +77,7 @@ class HasRestrictedUsagesTraitTest extends TestCase
                 'limit' => 0,
             ]),
         ]);
-        factory(Image::class)->create(['imageable_id' => $this->user->id, 'imageable_type' => User::class]);
+        Image::factory()->create(['imageable_id' => $this->user->id, 'imageable_type' => User::class]);
         $usage = $this->user->getUsageFor('images');
         $this->assertEquals(1, $usage->used);
         $this->assertEquals(9999, $usage->available);
@@ -119,12 +119,12 @@ class HasRestrictedUsagesTraitTest extends TestCase
                 'limit' => 0,
             ]),
         ]);
-        $firstPost = factory(Post::class)->create(['user_id' => $this->user->id]);
-        factory(Post::class)->create(['user_id' => $this->user->id]);
-        factory(Image::class)->create(['imageable_id' => $this->user->id, 'imageable_type' => User::class]);
-        factory(Image::class)->create(['imageable_id' => $this->user->id, 'imageable_type' => User::class]);
-        factory(Image::class)->create(['imageable_id' => $firstPost->id, 'imageable_type' => Post::class]);
-        factory(Image::class)->create(['imageable_id' => $firstPost->id, 'imageable_type' => Post::class]);
+        $firstPost = Post::factory()->create(['user_id' => $this->user->id]);
+        Post::factory()->create(['user_id' => $this->user->id]);
+        Image::factory()->create(['imageable_id' => $this->user->id, 'imageable_type' => User::class]);
+        Image::factory()->create(['imageable_id' => $this->user->id, 'imageable_type' => User::class]);
+        Image::factory()->create(['imageable_id' => $firstPost->id, 'imageable_type' => Post::class]);
+        Image::factory()->create(['imageable_id' => $firstPost->id, 'imageable_type' => Post::class]);
         $this->assertEquals([
             'images' =>  (object)[
                 'used' => 2,

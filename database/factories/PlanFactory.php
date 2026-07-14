@@ -1,43 +1,52 @@
 <?php
-/** @noinspection PhpUndefinedVariableInspection */
 
+namespace OnlineVerkaufen\Subscriptions\Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
 use OnlineVerkaufen\Subscriptions\Models\Plan;
 
-$factory->define(Plan::class, static function (\Faker\Generator $faker) {
-    return [
-        'position' => $faker->numberBetween(0, 10),
-        'state' => $faker->randomElement([Plan::STATE_DISABLED, Plan::STATE_ACTIVE]),
-        'name' => 'Testing Plan '.$faker->randomElement(['Bronze', 'Silver', 'Gold']),
-        'type' => $faker->randomElement(array_map(static function($type) { return $type['code']; }, Plan::PLAN_TYPES)),
-        'description' => $faker->paragraph,
-        'price' => $faker->randomElement([9900,29900,59900]),
-        'currency' => 'CHF',
-        'duration' => 30,
-    ];
-});
-$factory->state(Plan::class, 'active', static function() {
-    return [
-        'state' => Plan::STATE_ACTIVE
-    ];
-});
-$factory->state(Plan::class, 'disabled', static function() {
-    return [
-        'state' => Plan::STATE_DISABLED
-    ];
-});
-$factory->state(Plan::class, 'yearly', static function() {
-    return [
-        'type' => 'yearly'
-    ];
-});
-$factory->state(Plan::class, 'monthly', static function() {
-    return [
-        'type' => 'monthly'
-    ];
-});
-$factory->state(Plan::class, 'duration', static function() {
-    return [
-        'type' => 'duration'
-    ];
-});
+class PlanFactory extends Factory
+{
+    protected $model = Plan::class;
 
+    public function definition(): array
+    {
+        return [
+            'position' => $this->faker->numberBetween(0, 10),
+            'state' => $this->faker->randomElement([Plan::STATE_DISABLED, Plan::STATE_ACTIVE]),
+            'name' => 'Testing Plan ' . $this->faker->randomElement(['Bronze', 'Silver', 'Gold']),
+            'type' => $this->faker->randomElement(array_map(static function ($type) {
+                return $type['code'];
+            }, Plan::PLAN_TYPES)),
+            'description' => $this->faker->paragraph,
+            'price' => $this->faker->randomElement([9900, 29900, 59900]),
+            'currency' => 'CHF',
+            'duration' => 30,
+        ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(['state' => Plan::STATE_ACTIVE]);
+    }
+
+    public function disabled(): static
+    {
+        return $this->state(['state' => Plan::STATE_DISABLED]);
+    }
+
+    public function yearly(): static
+    {
+        return $this->state(['type' => 'yearly']);
+    }
+
+    public function monthly(): static
+    {
+        return $this->state(['type' => 'monthly']);
+    }
+
+    public function duration(): static
+    {
+        return $this->state(['type' => 'duration']);
+    }
+}

@@ -25,7 +25,7 @@ class SubscribeTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = factory(User::class)->create();
+        $this->user = User::factory()->create();
     }
 
     /** @test *
@@ -35,7 +35,7 @@ class SubscribeTest extends TestCase
     {
         config(['subscriptions.paymentToleranceDays' => 30]);
         Event::fake();
-        $plan = factory(Plan::class)->states(['active', 'yearly'])->create();
+        $plan = Plan::factory()->active()->yearly()->create();
         $this->user->subscribeTo($plan);
         $this->assertCount(1, $this->user->subscriptions);
         /** @var Subscription $subscription */
@@ -67,7 +67,7 @@ class SubscribeTest extends TestCase
      */
     public function can_subscribe_to_a_non_recurring_monthly_plan_with_test_period(): void
     {
-        $plan = factory(Plan::class)->states(['monthly', 'active'])->create();
+        $plan = Plan::factory()->monthly()->active()->create();
         Event::fake();
 
         $this->user->subscribeTo($plan, false,30);
@@ -95,7 +95,7 @@ class SubscribeTest extends TestCase
      */
     public function can_subscribe_to_a_recurring_plan_with_set_duration(): void
     {
-        $plan = factory(Plan::class)->states(['duration', 'active'])->create();
+        $plan = Plan::factory()->duration()->active()->create();
         Event::fake();
 
         $subscription = $this->user->subscribeTo($plan, true,0, 10);
@@ -122,7 +122,7 @@ class SubscribeTest extends TestCase
     /** @test * */
     public function can_not_subscribe_to_a_plan_with_zero_day_duration(): void
     {
-        $plan = factory(Plan::class)->states(['duration', 'active'])->create();
+        $plan = Plan::factory()->duration()->active()->create();
         Event::fake();
         try {
             $this->user->subscribeTo($plan, true,0, 0);
@@ -138,7 +138,7 @@ class SubscribeTest extends TestCase
     /** @test * */
     public function can_not_subscribe_overlapping_active_subscription(): void
     {
-        $plan = factory(Plan::class)->states(['duration', 'active'])->create();
+        $plan = Plan::factory()->duration()->active()->create();
         try {
             $subscription = $this->user->subscribeTo($plan, true,0, 10);
             $subscription->markAsPaid();
@@ -158,7 +158,7 @@ class SubscribeTest extends TestCase
     /** @test * */
     public function can_not_subscribe_overlapping_other_future_subscription(): void
     {
-        $plan = factory(Plan::class)->states(['duration', 'active'])->create();
+        $plan = Plan::factory()->duration()->active()->create();
         try {
             $subscription = $this->user->subscribeTo($plan, true,0, 10, Carbon::parse('+2 days')->toDateString());
             $subscription->markAsPaid();
@@ -181,7 +181,7 @@ class SubscribeTest extends TestCase
     public function subscriptions_for_free_plans_are_marked_as_paid(): void
     {
         Event::fake();
-        $plan = factory(Plan::class)->states(['active', 'yearly'])->create(['price' => 0]);
+        $plan = Plan::factory()->active()->yearly()->create(['price' => 0]);
         $this->user->subscribeTo($plan);
         Event::assertDispatched(NewSubscription::class);
         $this->assertCount(1, $this->user->subscriptions);
