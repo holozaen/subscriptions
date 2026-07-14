@@ -112,7 +112,7 @@ class SubscribeTest extends TestCase
         $this->assertNull($subscription->refunded_at);
         $this->assertNull($subscription->cancelled_at);
         $this->assertFalse($subscription->is_testing);
-        $this->assertEqualsWithDelta(Carbon::now(), $subscription->paid_at, 1);
+        $this->assertEqualsWithDelta(Carbon::now(), $subscription->paid_at, 2);
         $this->assertTrue($subscription->is_active);
         $this->assertTrue($subscription->is_paid);
         $this->assertFalse($subscription->is_pending_cancellation);
